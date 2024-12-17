@@ -27,7 +27,7 @@ public static class PlayerEndpoints
             return op;
         });
 
-        group.MapGet("/score/{playerId}", (int playerId, GameStateManager gameStateManager, Card card, CardValidator cardValidator) =>
+        group.MapGet("/score/{playerId}", (int playerId, GameStateManager gameStateManager) =>
         {
             var score = gameStateManager.GetPlayerScore(playerId);
             return TypedResults.Ok(score);

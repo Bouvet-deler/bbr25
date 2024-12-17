@@ -6,10 +6,17 @@ namespace BoardGameServerSimple.Services;
 public class GameStateManager
 {
     private GameState _gameState;
+    private readonly GameStateFactory _gameStateFactory;
+
+    public GameStateManager(GameStateFactory gameStateFactory)
+    {
+        _gameStateFactory = gameStateFactory;
+        _gameState = _gameStateFactory.CreateNewGameState();
+    }
 
     public void StartGame()
     {
-        _gameState = new GameState();
+        _gameState = _gameStateFactory.CreateNewGameState();
     }
 
     internal GameState GetGameState()

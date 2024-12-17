@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<GameStateManager>();
+builder.Services.AddSingleton<GameStateFactory>();
 builder.Services.AddSingleton<CardValidator>();
 builder.Services.AddSingleton<CommunicationManager>();
 
@@ -31,9 +32,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-
-
-
 // Communication Endpoints
 app.MapPost("/api/message/send", (string message, CommunicationManager communicationManager) =>
 {
@@ -50,7 +48,4 @@ app.MapGet("/api/message/receive", (CommunicationManager communicationManager) =
 
 
 app.UseHttpsRedirection();
-
-
-
 app.Run();

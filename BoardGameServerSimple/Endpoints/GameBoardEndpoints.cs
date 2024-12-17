@@ -11,7 +11,17 @@ public static class GameBoardEndpoints
 
         group.MapGet("/", (GameStateManager gameStateManager) =>
         {
-            return TypedResults.Ok(gameStateManager.GetGameState());
+            var gameState = gameStateManager.GetGameState();
+            var result = new
+            {
+                gameState.DeckPlayed,
+                CurrentPlayer = gameState.CurrentPlayer != null ? new { gameState.CurrentPlayer.Name, gameState.CurrentPlayer.Score } : null,
+                Players = gameState.Players?.Select(p => new { p.Name, p.Score }).ToList(),
+                Deck = gameState.Deck.Select(c => new { c.CardType, c.Beanometer, c.Quantity }).ToList(),
+                DiscardPile = gameState.DiscardPile.Select(c => new { c.CardType, c.Beanometer, c.Quantity }).ToList(),
+                NextPlayer = gameState.NextPlayer != null ? new { gameState.NextPlayer.Name, gameState.NextPlayer.Score } : null
+            };
+            return TypedResults.Ok(result);
         })
         .WithOpenApi(op =>
         {
