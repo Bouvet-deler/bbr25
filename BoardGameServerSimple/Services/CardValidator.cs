@@ -1,10 +1,9 @@
-﻿using BoardGameServerSimple.Models;
-
+﻿
 namespace BoardGameServerSimple.Services;
 
 public class CardValidator
 {
-    internal bool Validate(Card card)
+    internal bool Validate(object card)
     {
         // Validate the card according to game rules
         //Player has the card in his hand

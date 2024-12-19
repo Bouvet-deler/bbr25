@@ -1,5 +1,4 @@
-﻿using BoardGameServerSimple.Models;
-
+﻿
 namespace BoardGameServerSimple.Services;
 
 public class MessageValidator

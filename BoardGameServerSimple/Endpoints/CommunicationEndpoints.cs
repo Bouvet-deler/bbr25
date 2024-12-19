@@ -1,5 +1,4 @@
-﻿using BoardGameServerSimple.Models;
-using BoardGameServerSimple.Services;
+﻿using BoardGameServerSimple.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BoardGameServerSimple.Endpoints;
@@ -8,7 +7,7 @@ public static class CommunicationEndpoints
 {
     public static IEndpointRouteBuilder MapCommunicationEndpoints(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/message").WithTags(nameof(GameState));
+        var group = routes.MapGroup("/api/message");
 
 
         group.MapPost("/send-message", static async Task<Results<Ok, NotFound>> (CommunicationManager communicationManager, string message, MessageValidator messageValidator) =>

@@ -1,5 +1,5 @@
-﻿using BoardGameServerSimple.Models;
-using BoardGameServerSimple.Services;
+﻿using BoardGameServerSimple.Services;
+using BoardGameServer.Application;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BoardGameServerSimple.Endpoints;
@@ -9,33 +9,74 @@ public static class PlayerEndpoints
     public static IEndpointRouteBuilder MapPlayerEndpoints(this IEndpointRouteBuilder routes)
     {
 
-        var group = routes.MapGroup("/api/player").WithTags(nameof(GameState));
+        var group = routes.MapGroup("/api/player");
 
-        group.MapPost("/play-card", static async Task<Results<Ok<Card>, BadRequest>> (GameStateManager gameStateManager, Card card, CardValidator cardValidator) =>
+        group.MapPost("/end-planting", static async Task<Results<Ok<string>, BadRequest>> (Game game, CardValidator cardValidator, Guid playerKey) =>
         {
-            if (cardValidator.Validate(card))
-            {
-                await gameStateManager.PlayCard(card);
-                return TypedResults.Ok(card);
-            }
+            game.EndPlanting();
+            /* if (cardValidator.Validate(card)) */
+            /* { */
+            /*     await gameStateManager.PlayCard(card); */
+            /*     return TypedResults.Ok(card); */
+            /* } */
             return TypedResults.BadRequest();
         })
         .WithOpenApi(op =>
         {
-            op.Summary = "Recieves card from player to be played";
+            op.Summary = "Recieves a field from player to be planted";
+            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
+            return op;
+        });
+        group.MapPost("/plant", static async Task<Results<Ok<string>, BadRequest>> (Game game, CardValidator cardValidator, Guid playerKey, Guid field) =>
+        {
+            game.Plant(field);
+            /* if (cardValidator.Validate(card)) */
+            /* { */
+            /*     await gameStateManager.PlayCard(card); */
+            /*     return TypedResults.Ok(card); */
+            /* } */
+            return TypedResults.BadRequest();
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Recieves a field from player to be planted";
             op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
             return op;
         });
 
-        group.MapGet("/score/{playerId}", (int playerId, GameStateManager gameStateManager) =>
+        group.MapPost("/end-trading", static async Task<Results<Ok<string>, BadRequest>> (Game game, CardValidator cardValidator, Guid playerKey) =>
         {
-            var score = gameStateManager.GetPlayerScore(playerId);
-            return TypedResults.Ok(score);
+            game.EndPlanting();
+            /* if (cardValidator.Validate(card)) */
+            /* { */
+            /*     await gameStateManager.PlayCard(card); */
+            /*     return TypedResults.Ok(card); */
+            /* } */
+            return TypedResults.BadRequest();
         })
         .WithOpenApi(op =>
         {
-            op.Summary = "Recieves the score for the given player";
-            op.Description = "";
+            op.Summary = "Ends the trading phase";
+            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
+            return op;
+        });
+        group.MapPost("/plant-trade", static async Task<Results<Ok<string>, BadRequest>> (Game game, CardValidator cardValidator, Guid playerKey, Guid cardId, Guid field) =>
+        {
+            //Følgene to linjer burde jo egentlig vært valideringskode.
+            Player player = game.Players.Where(p=> p.Id == playerKey).First();
+            Card card = player.DrawnCards.Where(c=> c.Id == cardId).Union(player.TradedCards.Where(c=>c.Id == cardId)).Single();
+            game.PlantTrade(player, card, field);
+            /* if (cardValidator.Validate(card)) */
+            /* { */
+            /*     await gameStateManager.PlayCard(card); */
+            /*     return TypedResults.Ok(card); */
+            /* } */
+            return TypedResults.BadRequest();
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Ends the trading phase";
+            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
             return op;
         });
 
