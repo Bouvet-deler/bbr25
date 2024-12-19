@@ -6,7 +6,7 @@ namespace BoardGameServer.Application
         void EndPlanting();
 
         void OfferTrade(Offer trade);
-        void AcceptTrade(Player player,Accept trade);
+        void AcceptTrade(Player player,Guid offerId, List<Guid> payment);
         void EndTrading();
 
         void PlantTrade(Player player, Card card, Guid fieldId);

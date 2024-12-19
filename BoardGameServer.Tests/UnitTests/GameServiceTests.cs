@@ -1,4 +1,8 @@
-﻿
+﻿using BoardGameServer.Application;
+using Xunit;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 namespace BoardGameServer.Tests.UnitTests
 {
     public class GameServiceTests
@@ -115,10 +119,8 @@ namespace BoardGameServer.Tests.UnitTests
             game.CurrentPhase = Phase.Trading;
             Card offeredCard = p2.Hand.Where(c=>c.Type == "ChiliBean").Last();
             Offer o = new Offer(new List<Card>{ offeredCard }, new List<string>());
-            Accept p = new Accept(new List<string>(){"ChiliBean"},new List<Card>());
-
             game.OfferTrade(o);
-            game.AcceptTrade(p1, p);
+            game.AcceptTrade(p1, o.Id, new List<Guid>());
             
             Assert.True(p1.TradedCards.Contains(offeredCard));
             Assert.False(p2.Hand.Contains(offeredCard));

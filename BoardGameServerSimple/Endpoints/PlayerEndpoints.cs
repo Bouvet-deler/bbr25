@@ -79,6 +79,44 @@ public static class PlayerEndpoints
             op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
             return op;
         });
+        group.MapPost("/offer-trade", static async Task<Results<Ok<string>, BadRequest>> (Game game, CardValidator cardValidator, Guid playerKey, Guid[] offeredCards, List<string> wantedRecieved) =>
+        {
+            Player player = game.Players.Where(p=> p.Id == playerKey).First();
+            List<Card> cards = 
+                player.DrawnCards.Where(c=> offeredCards.Contains(c.Id))
+                .Union(player.TradedCards.Where(c=> offeredCards.Contains(c.Id))).ToList();
+            Offer offer = new Offer(cards, wantedRecieved);
+            game.OfferTrade(offer);
+            /* if (cardValidator.Validate(card)) */
+            /* { */
+            /*     await gameStateManager.PlayCard(card); */
+            /*     return TypedResults.Ok(card); */
+            /* } */
+            return TypedResults.BadRequest();
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Ends the trading phase";
+            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
+            return op;
+        });
+        group.MapPost("/accept-trade", static async Task<Results<Ok<string>, BadRequest>> (Game game, CardValidator cardValidator, Guid playerKey, Guid offer, List<Guid> payment) =>
+        {
+            Player player = game.Players.Where(p=> p.Id == playerKey).First();
+            game.AcceptTrade(player, offer, payment);
+            /* if (cardValidator.Validate(card)) */
+            /* { */
+            /*     await gameStateManager.PlayCard(card); */
+            /*     return TypedResults.Ok(card); */
+            /* } */
+            return TypedResults.BadRequest();
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Ends the trading phase";
+            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
+            return op;
+        });
 
         return routes;
     }

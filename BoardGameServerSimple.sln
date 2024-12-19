@@ -5,6 +5,10 @@ VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServerSimple", "BoardGameServerSimple\BoardGameServerSimple.csproj", "{966A3F91-84BC-4D1D-9132-C663FD76175F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServer.Tests", "BoardGameServer.Tests\BoardGameServer.Tests.csproj", "{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServer.Application", "BoardGameServer.Application\BoardGameServer.Application.csproj", "{06A46C64-AB25-4AB4-80DC-E1073B50DC36}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{966A3F91-84BC-4D1D-9132-C663FD76175F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{966A3F91-84BC-4D1D-9132-C663FD76175F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{966A3F91-84BC-4D1D-9132-C663FD76175F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06A46C64-AB25-4AB4-80DC-E1073B50DC36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06A46C64-AB25-4AB4-80DC-E1073B50DC36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06A46C64-AB25-4AB4-80DC-E1073B50DC36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06A46C64-AB25-4AB4-80DC-E1073B50DC36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

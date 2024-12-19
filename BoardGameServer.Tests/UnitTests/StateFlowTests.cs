@@ -1,4 +1,9 @@
-﻿namespace BoardGameServer.Tests.UnitTests
+﻿using BoardGameServer.Application;
+using Xunit;
+using System.Linq;
+using System;
+using System.Collections.Generic;
+namespace BoardGameServer.Tests.UnitTests
 {
     public class StateFlowTests
     {
@@ -142,10 +147,10 @@
                 handList[3]
             };
             Offer trade = new Offer(offer, price.Select(p=>p.Type).ToList());
-            Accept accept = new Accept(offer.Select(o=>o.Type).ToList(), price);
+            var guids = offer.Select(o=>o.Type).ToList();
             Assert.True(game.CurrentPlayer == p2);
             game.OfferTrade(trade);
-            game.AcceptTrade(p1, accept);
+            game.AcceptTrade(p1, trade.Id, price.Select(s=>s.Id).ToList());
             game.EndTrading();
             while (p1.DrawnCards.Any())
             {
@@ -231,21 +236,9 @@
             Assert.True(numTrades == 1);
             game.OfferTrade(trade2);
             Assert.True(numTrades + 1 == game.TradingArea.Count());
-            Accept acceptFirstTrade = new Accept(
-                    new List<string>(){Card.BlueBean().Type,Card.BlueBean().Type},
-                    catrin.Hand.Where(c=> c.Type == "SoyBean").ToList());
-            game.AcceptTrade(catrin,acceptFirstTrade);
+            game.AcceptTrade(catrin,trade.Id,catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
             Assert.True(game.TradingArea.Count() == 1);
-            Accept acceptSecondTrade = new Accept(
-                    new List<string>(){
-                        Card.StinkBean().Type,
-                        Card.RedBean().Type
-                        },
-                    bjørn.Hand.Where(c=> c.Type == "GardenBean").ToList());
-            Assert.True(acceptSecondTrade.Price.Count() == 1);
-            acceptSecondTrade.OfferedCards.Single(e => e == "StinkBean");
-            acceptSecondTrade.OfferedCards.Single(e => e == "RedBean");
-            game.AcceptTrade(bjørn,acceptSecondTrade);
+            game.AcceptTrade(bjørn,trade2.Id,bjørn.Hand.Where(c=> c.Type == "GardenBean").Select(s=>s.Id).ToList());
 
             game.EndTrading();
             Assert.True(albert.Hand.Count() == 2);
@@ -292,12 +285,9 @@
                    bjørn.DrawnCards.Where(c=>c.Type =="SoyBean").ToList(),
                    new List<string>(){"ChiliBean", "StinkBean"});
             game.OfferTrade(offer);
-            Accept accept = new Accept(
-                   new List<string>(){"SoyBean",},
-                   albert.Hand.Where(c=>c.Type =="ChiliBean" || c.Type == "StinkBean").ToList()
-                   );
 
-            game.AcceptTrade(albert,accept);
+            game.AcceptTrade(albert,offer.Id, 
+                   albert.Hand.Where(c=>c.Type =="ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
 
             game.EndTrading();
             Assert.True(bjørn.DrawnCards.Count() == 1);

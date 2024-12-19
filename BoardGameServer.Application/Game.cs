@@ -3,7 +3,7 @@ namespace BoardGameServer.Application
     public class Game : IPlayerActions, IRegisterActions
     {
 
-        public readonly IList<Player> Players;
+        public List<Player> Players;
 
         public State CurrentState;
         // Er null om spillet ikke er i gang
@@ -30,7 +30,7 @@ namespace BoardGameServer.Application
             TradingArea = new List<Offer>();
         }
 
-        public bool Join(string name)
+        public Guid Join(string name)
         {
             var player = new Player(name);
             var firstPlayer = Players.FirstOrDefault();
@@ -155,12 +155,10 @@ namespace BoardGameServer.Application
             TradingArea.Add(trade);
         }
 
-        public void AcceptTrade(Player player, Accept trade)
+        public void AcceptTrade(Player player, Guid offerId, List<Guid> trade)
         {
             //Finner det kompatible budet i trading acrea
-            TradingArea.First();
-            var offeredTrade = TradingArea.Where(offer => offer.IsCompatible(trade)
-                ).First();
+            var offeredTrade = TradingArea.Where(offer => offer.Id == offerId).First();
             TradingArea.Remove(offeredTrade);
             Queue<Card> currentPlayerHand = CurrentPlayer.Hand;
             Queue<Card> currentPlayerNewHand = new Queue<Card>();
@@ -195,7 +193,7 @@ namespace BoardGameServer.Application
             foreach (var item in playerHand)
             {
                 //Fjerner alle kort som ble byttet bort
-                if (!trade.Price.Any(card =>card.Id == item.Id))
+                if (!trade.Any(card =>card == item.Id))
                 {
                     playerNewHand.Enqueue(item);
                 }
@@ -273,7 +271,7 @@ namespace BoardGameServer.Application
             }
             else
             {
-                CalculateWinner();
+                HandleGameEnd();
                 throw new NotImplementedException();
             }
 
@@ -347,7 +345,7 @@ namespace BoardGameServer.Application
                 player.Fields[field].RemoveAll(e=> true);
             }
         }
-        public void CalculateWinner()
+        public void HandleGameEnd()
         {
 
         }
