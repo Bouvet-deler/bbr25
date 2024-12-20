@@ -7,11 +7,19 @@ public static class GameBoardEndpoints
     {
         var group = routes.MapGroup("/api/game");
 
-        group.MapGet("/", (Game game, Guid? playerKey) =>
+        group.MapGet("/", (Game game, string? player) =>
         {
+            Guid playerKey;
+            Guid.TryParse(player,out playerKey);
+            var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
+            Queue<Card> hand = new Queue<Card>();;
+            if (p != null) hand = p.Hand;
+
+
             var result = new
             {
                 CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
+                CurrentPlayer1 = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Id.ToString(),
                 CurrentPhase = game.CurrentPhase,
                 CurrentMode = game.CurrentState,
                 Deck = game.Deck.Count(),
@@ -26,7 +34,7 @@ public static class GameBoardEndpoints
                         DrawnCards = p.DrawnCards,
                         TradedCards = p.TradedCards
                         })?.ToList(),
-                YourHand = game.Players.Any() ?  game.Players.First(player => player.Id == playerKey)?.Hand : null ,
+                YourHand = hand,
             };
             return TypedResults.Ok(result);
         })

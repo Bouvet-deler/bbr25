@@ -79,8 +79,11 @@ public static class PlayerEndpoints
             op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
             return op;
         });
-        group.MapPost("/offer-trade", static async Task<Results<Ok<string>, BadRequest>> (Game game, CardValidator cardValidator, Guid playerKey, Guid[] offeredCards, List<string> wantedRecieved) =>
+        group.MapPost("/offer-trade", static async Task<Results<Ok<string>, BadRequest>> (Game game, CardValidator cardValidator, Guid playerKey, Guid[] offeredCards) =>
         {
+
+        //Denne må opp i parameterene men det er noe jeg ikke skjønner
+        List<string> wantedRecieved  = null;
             Player player = game.Players.Where(p=> p.Id == playerKey).First();
             List<Card> cards = 
                 player.DrawnCards.Where(c=> offeredCards.Contains(c.Id))
