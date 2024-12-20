@@ -57,7 +57,10 @@ namespace BoardGameServer.Application
 
             return player.Id;
         }
-        public void StartGame(){
+
+        public void StartGame()
+        {
+            Discard = new Stack<Card>();
             //Legger ting i discard, så shuffles det, og da havner det i decken
             for(int i = 0; i < 8; i++)
             {
@@ -134,7 +137,8 @@ namespace BoardGameServer.Application
 
         }
 
-        public void EndPlanting(){
+        public void EndPlanting()
+        {
             //Domene
             //Ingenting skjer i domene
             //Tilstand
@@ -206,7 +210,8 @@ namespace BoardGameServer.Application
 
         }
 
-        public void EndTrading(){
+        public void EndTrading()
+        {
             TradingArea.Clear();
             switch (CurrentPhase)
             {
@@ -272,7 +277,6 @@ namespace BoardGameServer.Application
             else
             {
                 HandleGameEnd();
-                throw new NotImplementedException();
             }
 
         }
@@ -347,7 +351,7 @@ namespace BoardGameServer.Application
         }
         public void HandleGameEnd()
         {
-
+            CurrentState = State.GameDone;
         }
     }
 

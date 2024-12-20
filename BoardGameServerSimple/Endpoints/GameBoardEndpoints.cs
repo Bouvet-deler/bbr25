@@ -10,16 +10,17 @@ public static class GameBoardEndpoints
         group.MapGet("/", (Game game, string? player) =>
         {
             Guid playerKey;
-            Guid.TryParse(player,out playerKey);
-            var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
             Queue<Card> hand = new Queue<Card>();;
-            if (p != null) hand = p.Hand;
+            if (Guid.TryParse(player, out playerKey))
+            {
+                var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
+                if (p != null) hand = p.Hand;
+            }
 
 
             var result = new
             {
                 CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
-                CurrentPlayer1 = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Id.ToString(),
                 CurrentPhase = game.CurrentPhase,
                 CurrentMode = game.CurrentState,
                 Deck = game.Deck.Count(),
@@ -29,12 +30,16 @@ public static class GameBoardEndpoints
                 ?.Select(p => new { 
                         p.Name,
                         p.Coins,
-                        Fields = p.Fields,
+                        Fields = p.Fields.Select(kv => new{kv.Key,Card = kv.Value.Select(c=>new{c.Id, c.Type})}),
                         Hand = p.Hand.Count(),
-                        DrawnCards = p.DrawnCards,
-                        TradedCards = p.TradedCards
+                        DrawnCards = p.DrawnCards.Select(c=>new{c.Id, c.Type}),
+                        TradedCards = p.TradedCards.Select(c=>new{c.Id, c.Type})
                         })?.ToList(),
-                YourHand = hand,
+                YourHand = hand.Select(c=>new{
+                        FirstCard = hand.Peek() == c,
+                        c.Id,
+                        c.Type
+                        })
             };
             return TypedResults.Ok(result);
         })

@@ -4,5 +4,6 @@ public enum State
 {
     Registering,
     Playing,
+    GameDone,
 }
 }
