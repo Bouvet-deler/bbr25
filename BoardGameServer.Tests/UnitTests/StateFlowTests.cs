@@ -3,6 +3,7 @@ using Xunit;
 using System.Linq;
 using System;
 using System.Collections.Generic;
+using SharedModels;
 namespace BoardGameServer.Tests.UnitTests
 {
     public class StateFlowTests

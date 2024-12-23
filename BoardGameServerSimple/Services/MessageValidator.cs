@@ -1,11 +1,17 @@
 ﻿
+using SharedModels;
+
 namespace BoardGameServerSimple.Services;
 
-public class MessageValidator
+public class MessageValidator : IMessageValidator
 {
-    internal bool Validate(string message)
+    public bool Validate(NegotiationRequest negotiationRequest)
     {
-        //Validte cards, messages, etc.
+        throw new NotImplementedException();
+    }
+
+    public bool Validate(ResponseRequest response)
+    {
         throw new NotImplementedException();
     }
 }

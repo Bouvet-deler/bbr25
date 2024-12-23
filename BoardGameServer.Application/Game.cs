@@ -1,3 +1,5 @@
+using SharedModels;
+
 namespace BoardGameServer.Application
 {
     public class Game : IPlayerActions, IRegisterActions
@@ -99,13 +101,13 @@ namespace BoardGameServer.Application
 
             foreach (var item in Players)
             {
-                for(int i = 0; i < 5; i++)
+                for (int i = 0; i < 5; i++)
                 {
-                    var card = Deck.Pop();
+                    Card card = Deck.Pop();
                     item.Hand.Enqueue(card);
                 }
-            
-                for(int i = 0; i < 2; i++)
+
+                for (int i = 0; i < 2; i++)
                 {
                     item.Fields.Add(Guid.NewGuid(), new List<Card>());
                 }
@@ -354,6 +356,5 @@ namespace BoardGameServer.Application
             CurrentState = State.GameDone;
         }
     }
-
 }   
 

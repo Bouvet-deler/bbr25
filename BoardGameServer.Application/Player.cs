@@ -1,3 +1,5 @@
+using SharedModels;
+
 namespace BoardGameServer.Application
 {
     public class Player

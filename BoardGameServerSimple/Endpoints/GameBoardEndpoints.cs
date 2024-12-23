@@ -1,4 +1,6 @@
 ﻿using BoardGameServer.Application;
+using NegotiatorService;
+using SharedModels;
 namespace BoardGameServerSimple.Endpoints;
 
 public static class GameBoardEndpoints
@@ -10,37 +12,13 @@ public static class GameBoardEndpoints
         group.MapGet("/", (Game game, string? player) =>
         {
             Guid playerKey;
-            Queue<Card> hand = new Queue<Card>();;
+            Queue<Card> hand = new Queue<Card>(); ;
             if (Guid.TryParse(player, out playerKey))
             {
                 var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
                 if (p != null) hand = p.Hand;
             }
-
-
-            var result = new
-            {
-                CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
-                CurrentPhase = game.CurrentPhase,
-                CurrentMode = game.CurrentState,
-                Deck = game.Deck.Count(),
-                AvailableTrades = game.TradingArea,
-                DiscardPile = game.Discard,
-                Players = game.Players
-                ?.Select(p => new { 
-                        p.Name,
-                        p.Coins,
-                        Fields = p.Fields.Select(kv => new{kv.Key,Card = kv.Value.Select(c=>new{c.Id, c.Type})}),
-                        Hand = p.Hand.Count(),
-                        DrawnCards = p.DrawnCards.Select(c=>new{c.Id, c.Type}),
-                        TradedCards = p.TradedCards.Select(c=>new{c.Id, c.Type})
-                        })?.ToList(),
-                YourHand = hand.Select(c=>new{
-                        FirstCard = hand.Peek() == c,
-                        c.Id,
-                        c.Type
-                        })
-            };
+            object result = CreateGameState(game, hand);
             return TypedResults.Ok(result);
         })
         .WithOpenApi(op =>
@@ -60,6 +38,7 @@ public static class GameBoardEndpoints
             op.Description = "";
             return op;
         });
+
         group.MapPost("/start", (Game game) =>
         {
             game.StartGame();
@@ -84,4 +63,33 @@ public static class GameBoardEndpoints
         });
         return routes;
     }
+    static object CreateGameState(Game game, Queue<Card> hand)
+    {
+        return new
+        {
+            CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
+            CurrentPhase = game.CurrentPhase,
+            CurrentMode = game.CurrentState,
+            Deck = game.Deck.Count(),
+            AvailableTrades = game.TradingArea,
+            DiscardPile = game.Discard,
+            Players = game.Players
+            ?.Select(p => new
+            {
+                p.Name,
+                p.Coins,
+                Fields = p.Fields.Select(kv => new { kv.Key, Card = kv.Value.Select(c => new { c.Id, c.Type }) }),
+                Hand = p.Hand.Count(),
+                DrawnCards = p.DrawnCards.Select(c => new { c.Id, c.Type }),
+                TradedCards = p.TradedCards.Select(c => new { c.Id, c.Type })
+            })?.ToList(),
+            YourHand = hand.Select(c => new
+            {
+                FirstCard = hand.Peek() == c,
+                c.Id,
+                c.Type
+            })
+        };
+    }
+
 }

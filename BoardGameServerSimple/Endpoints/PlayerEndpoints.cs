@@ -1,6 +1,7 @@
 ﻿using BoardGameServerSimple.Services;
 using BoardGameServer.Application;
 using Microsoft.AspNetCore.Http.HttpResults;
+using SharedModels;
 
 namespace BoardGameServerSimple.Endpoints;
 
