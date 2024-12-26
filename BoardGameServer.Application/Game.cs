@@ -10,7 +10,7 @@ namespace BoardGameServer.Application
         public State CurrentState;
         // Er null om spillet ikke er i gang
         // Laget for å holde styr på hvor i runden vi er
-        public Player CurrentPlayer;
+        public Player? CurrentPlayer;
         //Holder styr på hvor i turen vi er. 
         public Phase CurrentPhase;
 
@@ -62,6 +62,11 @@ namespace BoardGameServer.Application
 
         public void StartGame()
         {
+            if (Players == null || !Players.Any())
+            {
+                throw new InvalidOperationException("No players available to start the game.");
+            }
+
             Discard = new Stack<Card>();
             //Legger ting i discard, så shuffles det, og da havner det i decken
             for(int i = 0; i < 8; i++)

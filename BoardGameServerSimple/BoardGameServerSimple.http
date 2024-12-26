@@ -1,6 +1,81 @@
 @BoardGameServerSimple_HostAddress = https://localhost:7046/api/game
 
-GET {{BoardGameServerSimple_HostAddress}}/api/start
-Accept: application/json
+
+### Start Game Endpoint
+POST {{BoardGameServerSimple_HostAddress}}/start
+Content-Type: application/json
+
+{
+    "Players": [
+        {
+            "Id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+            "Name": "Player1",
+            "Coins": 0,
+            "Fields": {},
+            "Hand": [],
+            "DrawnCards": [],
+            "TradedCards": [],
+            "StartingPlayer": true
+        },
+        {
+            "Id": "d290f1ee-6c54-4b01-90e6-d701748f0852",
+            "Name": "Player2",
+            "Coins": 0,
+            "Fields": {},
+            "Hand": [],
+            "DrawnCards": [],
+            "TradedCards": [],
+            "StartingPlayer": false
+        }
+    ],
+    "CurrentState": "Registering",
+    "CurrentPlayer": null,
+    "CurrentPhase": "Planting",
+    "NumberOfDeckTurns": 0,
+    "GameEnded": false,
+    "Deck": [],
+    "Discard": [],
+    "TradingArea": []
+}
+
+
+### Start Negotiation
+POST {{BoardGameServerSimple_HostAddress}}/api/start-negotiation
+Content-Type: application/json
+
+{
+  "PlayerId": "00000000-0000-0000-0000-000000000000",
+  "NegotiationId": "00000000-0000-0000-0000-000000000000",
+  "CardsToExchange": [
+    {
+      "Id": "00000000-0000-0000-0000-000000000000",
+      "Type": "BlackEyedBean",
+      "ExchangeMap": [
+        [1, 2],
+        [3, 4]
+      ]
+    }
+  ],
+  "CardsToReceive": [
+    {
+      "Id": "00000000-0000-0000-0000-000000000000",
+      "Type": "ChiliBean",
+      "ExchangeMap": [
+        [1, 2],
+        [3, 4]
+      ]
+    }
+  ]
+}
+
+
+> {% 
+    const negotiationId = response.body.id;
+%}
+
+### Get Negotiation Status
+GET {{BoardGameServerSimple_HostAddress}}/api/get-negotiation-status/{{negotiationId}}
+Content-Type: application/json
+
 
 ###

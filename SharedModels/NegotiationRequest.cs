@@ -1,3 +1,3 @@
 ﻿namespace SharedModels;
 
-public record NegotiationRequest(string PlayerId, SimpleCard CardsToExchange, SimpleCard CardsToReceive);
+public record NegotiationRequest(Guid PlayerId, Guid NegotiationId, List<Card> CardsToExchange, List<Card> CardsToReceive);

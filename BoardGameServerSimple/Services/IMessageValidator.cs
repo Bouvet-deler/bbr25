@@ -4,7 +4,7 @@ namespace BoardGameServerSimple.Services
 {
     public interface IMessageValidator
     {
-        bool Validate(ResponseRequest response);
+        bool Validate(ResponseToOfferRequest response);
         bool Validate(NegotiationRequest negotiationRequest);
     }
 }

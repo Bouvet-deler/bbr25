@@ -10,7 +10,7 @@ public class MessageValidator : IMessageValidator
         throw new NotImplementedException();
     }
 
-    public bool Validate(ResponseRequest response)
+    public bool Validate(ResponseToOfferRequest response)
     {
         throw new NotImplementedException();
     }

@@ -33,25 +33,6 @@ public static class NegotiationEndpoints
             op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
             return op;
         });
-        group.MapPost("/start-negotiation", static async Task<Results<Ok<NegotiationState>, NotFound>> ([FromBody] NegotiationRequest negotiationRequest, [FromServices] INegotiationService negotiationService, [FromServices] MessageValidator messageValidator) =>
-        {
-            NegotiationState response;
-
-            //Server needs to validate the message from the player.
-            if (messageValidator.Validate(negotiationRequest))
-            {
-                response = negotiationService.StartNegotiation(negotiationRequest);
-                return TypedResults.Ok(response);
-            }
-            return TypedResults.NotFound();
-        })
-        .WithOpenApi(op =>
-        {
-            op.Summary = "Recieves card from player to be played";
-            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
-            return op;
-        });
-
 
         group.MapGet("/get-negotiation-status/{id:guid}", static async Task<Results<Ok<NegotiationState>, NotFound>> ([FromServices]  INegotiationService negotiationService, Guid id) =>
         {
@@ -71,7 +52,7 @@ public static class NegotiationEndpoints
             return op;
         });
 
-        group.MapPost("/respond-negotiation", static async Task<Results<Ok<string>, NotFound>> (ResponseRequest request, [FromServices] INegotiationService negotiationService, [FromServices] MessageValidator messageValidator) =>
+        group.MapPost("/respond-negotiation", static async Task<Results<Ok<EndingOfferRequest>, NotFound>> (ResponseToOfferRequest request, [FromServices] INegotiationService negotiationService, [FromServices] MessageValidator messageValidator) =>
         {
             //Valid card offered?
             if (messageValidator.Validate(request))
@@ -84,7 +65,7 @@ public static class NegotiationEndpoints
             {
                 return TypedResults.NotFound();
             }
-            return TypedResults.Ok(status);
+            return TypedResults.Ok<EndingOfferRequest>(status);
         })
         .WithOpenApi(op =>
         {
