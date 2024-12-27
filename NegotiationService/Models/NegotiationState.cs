@@ -1,6 +1,6 @@
 ﻿using SharedModels;
 
-namespace NegotiatorService.Models;
+namespace Negotiator.Models;
 
 public class NegotiationState(Guid initiator, Guid id, List<Card> cardOffered, List<Card> cardWanted)
 {

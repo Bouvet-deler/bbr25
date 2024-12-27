@@ -1,8 +1,8 @@
-﻿using NegotiatorService.Models;
+﻿using Negotiator.Models;
 using SharedModels;
 using System.Collections.Concurrent;
 
-namespace NegotiatorService;
+namespace Negotiator;
 
 public class NegotiationService : INegotiationService
 {

@@ -1,6 +1,5 @@
 @BoardGameServerSimple_HostAddress = https://localhost:7046/api/game
 
-
 ### Start Game Endpoint
 POST {{BoardGameServerSimple_HostAddress}}/start
 Content-Type: application/json
@@ -38,7 +37,7 @@ Content-Type: application/json
     "TradingArea": []
 }
 
-
+### Negotiator Action
 ### Start Negotiation
 POST {{BoardGameServerSimple_HostAddress}}/api/start-negotiation
 Content-Type: application/json
@@ -76,6 +75,90 @@ Content-Type: application/json
 ### Get Negotiation Status
 GET {{BoardGameServerSimple_HostAddress}}/api/get-negotiation-status/{{negotiationId}}
 Content-Type: application/json
+
+
+### Send response to negotiation
+POST {{BoardGameServerSimple_HostAddress}}/api/negotiation/respond-negotiation
+Content-Type: application/json
+
+{
+  "playerId": "e7b8a9d2-4b5e-4c3b-8b8e-2b5e4c3b8b8e",
+  "negotiationId": "d2b8a9e7-5e4c-3b8b-8e2b-4c3b8b8e2b5e",
+  "offerStatus": "Accepted",
+  "cardsExchanged": [
+    {
+      "id": "a1b2c3d4-e5f6-7a8b-9c0d-e1f2a3b4c5d6",
+      "type": "ChiliBean",
+      "exchangeMap": [
+        [1, 2],
+        [3, 4]
+      ]
+    }
+  ],
+  "cardsReceived": [
+    {
+      "id": "d4c3b2a1-6f5e-7a8b-9c0d-e1f2a3b4c5d6",
+      "type": "BlackEyedBean",
+      "exchangeMap": [
+        [2, 3],
+        [4, 5]
+      ]
+    }
+  ]
+}
+
+### Player Action
+### End planting phase
+POST {{BoardGameServerSimple_HostAddress}}/api/player/end-planting
+Content-Type: application/json
+
+{
+  "game": {
+    "Players": [],
+    "CurrentState": "Playing",
+    "CurrentPlayer": null,
+    "CurrentPhase": "Planting",
+    "NumberOfDeckTurns": 0,
+    "GameEnded": false,
+    "Deck": [],
+    "Discard": [],
+    "TradingArea": []
+  },
+  "cardValidator": {},
+  "playerKey": "player-key-string"
+}
+### Harvest Field Request
+POST {{BoardGameServerSimple_HostAddress}}/api/player/harvest-field
+Content-Type: application/json
+
+{
+  "game": {
+    "Players": [
+      {
+        "Id": "player-guid",
+        "NextPlayer": null,
+        "Hand": [],
+        "TradedCards": [],
+        "DrawnCards": [],
+        "Fields": {},
+        "StartingPlayer": false,
+        "Coins": 0,
+        "Name": "PlayerName"
+      }
+    ],
+    "CurrentState": "Playing",
+    "CurrentPlayer": null,
+    "CurrentPhase": "Planting",
+    "NumberOfDeckTurns": 0,
+    "GameEnded": false,
+    "Deck": [],
+    "Discard": [],
+    "TradingArea": []
+  },
+  "cardValidator": {},
+  "player": "player-guid",
+  "field": "field-guid"
+}
 
 
 ###

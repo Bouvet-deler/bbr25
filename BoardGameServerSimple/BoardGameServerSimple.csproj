@@ -13,7 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BoardGameServer.Application\BoardGameServer.Application.csproj" />
-    <ProjectReference Include="..\NegotiationService\NegotiatorService.csproj" />
+    <ProjectReference Include="..\NegotiationService\Negotiator.csproj" />
+    <ProjectReference Include="..\SharedModels\SharedModels.csproj" />
   </ItemGroup>
 
 </Project>

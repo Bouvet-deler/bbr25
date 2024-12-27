@@ -1,5 +1,5 @@
 ﻿using BoardGameServer.Application;
-using NegotiatorService;
+using Negotiator;
 using SharedModels;
 namespace BoardGameServerSimple.Endpoints;
 

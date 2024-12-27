@@ -1,8 +1,8 @@
 ﻿using BoardGameServerSimple.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using NegotiatorService;
-using NegotiatorService.Models;
+using Negotiator;
+using Negotiator.Models;
 using SharedModels;
 
 namespace BoardGameServerSimple.Endpoints;

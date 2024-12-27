@@ -1,6 +1,7 @@
+using BoardGameServer.Application.Services;
 using BoardGameServerSimple.Endpoints;
 using BoardGameServerSimple.Services;
-using NegotiatorService;
+using Negotiator;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<BoardGameServer.Application.Game>();
 builder.Services.AddSingleton<CardValidator>();
+builder.Services.AddSingleton<GameService>();
 builder.Services.AddSingleton<INegotiationService, NegotiationService>();
 builder.Services.AddSingleton<IMessageValidator, MessageValidator>();
 

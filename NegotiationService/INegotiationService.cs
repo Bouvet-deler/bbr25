@@ -1,8 +1,8 @@
-using NegotiatorService.Models;
+using Negotiator.Models;
 using SharedModels;
 using System.Threading.Tasks;
 
-namespace NegotiatorService
+namespace Negotiator
 {
     public interface INegotiationService
     {

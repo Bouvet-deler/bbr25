@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServer.Tests", "Bo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServer.Application", "BoardGameServer.Application\BoardGameServer.Application.csproj", "{06A46C64-AB25-4AB4-80DC-E1073B50DC36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NegotiatorService", "NegotiationService\NegotiatorService.csproj", "{BAFC3BAC-90AC-4CD3-986B-FC709C5385BB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Negotiator", "NegotiationService\Negotiator.csproj", "{BAFC3BAC-90AC-4CD3-986B-FC709C5385BB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedModels", "SharedModels\SharedModels.csproj", "{0964C740-528D-4001-BFAA-4647649E3670}"
 EndProject
