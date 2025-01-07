@@ -1,6 +1,6 @@
 ﻿namespace SharedModels;
 
-public record StatusOfferRequest
+public record ResultOfferRequest
 {
     public Guid InitiatorId { get; }
     public Guid ReceiverId { get; }
@@ -9,7 +9,7 @@ public record StatusOfferRequest
     public List<Card> CardsExchanged { get; set; } = [];
     public List<Card> CardsReceived { get; set; } = [];
 
-    public StatusOfferRequest(Guid initiatorId, Guid receiverId, Guid negotiationId)
+    public ResultOfferRequest(Guid initiatorId, Guid receiverId, Guid negotiationId)
     {
         InitiatorId = initiatorId;
         ReceiverId = receiverId;

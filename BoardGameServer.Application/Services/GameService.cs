@@ -1,14 +1,17 @@
-﻿using SharedModels;
+﻿using Negotiator;
+using SharedModels;
 
 namespace BoardGameServer.Application.Services
 {
     public class GameService
     {
         private readonly Game _game;
-        
-        public GameService()
+        private readonly INegotiationService _negotiationService;
+
+        public GameService(INegotiationService negotiationService)
         {
-            _game = new Game();
+            _negotiationService = negotiationService;
+            _game = new Game(_negotiationService);
         }
 
         public Game GetCurrentGame()

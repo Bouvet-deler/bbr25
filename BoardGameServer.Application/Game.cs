@@ -1,4 +1,6 @@
+using Negotiator;
 using SharedModels;
+using Negotiator.Models;
 
 namespace BoardGameServer.Application
 {
@@ -22,15 +24,19 @@ namespace BoardGameServer.Application
         public Stack<Card> Discard;
         public Random random = new Random();
 
+        //ToDo: Remove this
         public List<Offer> TradingArea;
 
-        public Game()
+        public INegotiationService NegotiationService { get; }
+
+        public Game(INegotiationService negotiationService)
         {
             CurrentState = State.Registering;
             Players = new List<Player>();
             Discard = new Stack<Card>();
             Deck = new Stack<Card>();
             TradingArea = new List<Offer>();
+            NegotiationService = negotiationService;
         }
 
         public Guid Join(string name)
@@ -69,35 +75,35 @@ namespace BoardGameServer.Application
 
             Discard = new Stack<Card>();
             //Legger ting i discard, så shuffles det, og da havner det i decken
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
                 Discard.Push(Card.RedBean());
             }
-            for(int i = 0; i < 18; i++)
+            for (int i = 0; i < 18; i++)
             {
                 Discard.Push(Card.ChiliBean());
             }
-            for(int i = 0; i < 20; i++)
+            for (int i = 0; i < 20; i++)
             {
                 Discard.Push(Card.BlueBean());
             }
-            for(int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
                 Discard.Push(Card.BlackEyedBean());
             }
-            for(int i = 0; i < 16; i++)
+            for (int i = 0; i < 16; i++)
             {
                 Discard.Push(Card.StinkBean());
             }
-            for(int i = 0; i < 12; i++)
+            for (int i = 0; i < 12; i++)
             {
                 Discard.Push(Card.SoyBean());
             }
-            for(int i = 0; i < 14; i++)
+            for (int i = 0; i < 14; i++)
             {
                 Discard.Push(Card.GreenBean());
             }
-            for(int i = 0; i < 6; i++)
+            for (int i = 0; i < 6; i++)
             {
                 Discard.Push(Card.GardenBean());
             }
@@ -121,7 +127,7 @@ namespace BoardGameServer.Application
             Players.FirstOrDefault().StartingPlayer = true;
             CurrentState = State.Playing;
             CurrentPhase = Phase.Planting;
-            CurrentPlayer = Players.Single(p=> p.StartingPlayer);
+            CurrentPlayer = Players.Single(p => p.StartingPlayer);
         }
 
         public void Plant(Guid field)
@@ -141,7 +147,6 @@ namespace BoardGameServer.Application
                 default:
                     throw new Exception($"Valideringen er ikke fullstendig. {CurrentPhase} and {CurrentPlayer}");
             }
-
         }
 
         public void EndPlanting()
@@ -158,28 +163,53 @@ namespace BoardGameServer.Application
                 default:
                     throw new Exception($"Valideringen er ikke fullstendig. {CurrentPhase} and {CurrentPlayer}");
             }
-
         }
 
-        public void OfferTrade(Offer trade)
+        public NegotiationState StartTrade(NegotiationRequest negotiationRequest)
         {
-            TradingArea.Add(trade);
+            var negotiationState = NegotiationService.StartNegotiation(negotiationRequest);
+            var timer = new System.Timers.Timer(120000); // 2 minutes in milliseconds
+            timer.Elapsed += (sender, e) => EndNegotiation(negotiationState);
+            timer.AutoReset = false;
+            timer.Start();
+            return negotiationState;
         }
 
-        public void AcceptTrade(Player player, Guid offerId, List<Guid> trade)
+
+        private async Task Negotiate(ResponseToOfferRequest request)
+        {
+            var response = await NegotiationService.RespondToNegotiationAsync(request);
+            if (response.OfferStatus == OfferStatus.Accepted)
+            {
+                AcceptTrade(CurrentPlayer, request.NegotiationId, response.CardsExchanged, response.CardsReceived);
+            }
+            else if (response.OfferStatus == OfferStatus.Declined)
+            {
+                const string message = "Trade declined";
+            }
+        }
+
+        private void EndNegotiation(NegotiationState negotiationState)
+        {
+            NegotiationService.EndNegotiation(negotiationState);
+            EndTrading(negotiationState);
+        }
+
+        public void AcceptTrade(Player player, Guid offerId, List<Card> cardsExchanged, List<Card> cardsReceived)
         {
             //Finner det kompatible budet i trading acrea
-            var offeredTrade = TradingArea.Where(offer => offer.Id == offerId).First();
-            TradingArea.Remove(offeredTrade);
+            //var offeredTrade = TradingArea.Where(offer => offer.Id == offerId).First();
+            //TradingArea.Remove(offeredTrade);
             Queue<Card> currentPlayerHand = CurrentPlayer.Hand;
             Queue<Card> currentPlayerNewHand = new Queue<Card>();
             foreach (var item in currentPlayerHand)
             {
                 //Fjerner alle kort som ble byttet bort
-                if (!offeredTrade.OfferedCards.Any(card =>card.Id == item.Id))
+                if (cardsExchanged.Any(card => card.Id == item.Id))
                 {
                     currentPlayerNewHand.Enqueue(item);
-                }else
+                }
+                else
                 {
                     player.TradedCards.Add(item);
                 }
@@ -189,7 +219,7 @@ namespace BoardGameServer.Application
             foreach (var item in drawnCards)
             {
                 //Fjerner alle kort som ble byttet bort
-                if (offeredTrade.OfferedCards.Contains(item))
+                if (cardsExchanged.Contains(item))
                 {
                     player.TradedCards.Add(item);
                     drawnCardsRemove.Add(item);
@@ -204,7 +234,7 @@ namespace BoardGameServer.Application
             foreach (var item in playerHand)
             {
                 //Fjerner alle kort som ble byttet bort
-                if (!trade.Any(card =>card == item.Id))
+                if (cardsExchanged.Any(card => card == item.Id))
                 {
                     playerNewHand.Enqueue(item);
                 }
@@ -217,7 +247,7 @@ namespace BoardGameServer.Application
 
         }
 
-        public void EndTrading()
+        public void EndTrading(NegotiationState negotiationState)
         {
             TradingArea.Clear();
             switch (CurrentPhase)
@@ -228,14 +258,16 @@ namespace BoardGameServer.Application
                 default:
                     throw new Exception($"Valideringen er ikke fullstendig. {CurrentPhase} and {CurrentPlayer}");
             }
-        }  
+        }
 
         public void PlantTrade(Player player, Card card, Guid field)
         {
             bool didRemove = player.TradedCards.Remove(card);
-            if (!didRemove) {
+            if (!didRemove)
+            {
                 didRemove = player.DrawnCards.Remove(card);
-                if (!didRemove) {
+                if (!didRemove)
+                {
                     throw new Exception("Valider bedre!");
                 }
             }
@@ -254,7 +286,7 @@ namespace BoardGameServer.Application
         void GoToTradingPhase()
         {
             CurrentPhase = Phase.Trading;
-            for(int i = 0; i<2; i++)
+            for (int i = 0; i < 2; i++)
             {
                 var card = DrawCard();
                 if (card != null)
@@ -266,8 +298,8 @@ namespace BoardGameServer.Application
         }
         public void GoToPlantingPhase()
         {
-            
-            for(int i = 0; i<3; i++)
+
+            for (int i = 0; i < 3; i++)
             {
                 var card = DrawCard();
                 if (card != null)
@@ -301,7 +333,7 @@ namespace BoardGameServer.Application
             {
                 card = Deck.Pop();
             }
-            catch(InvalidOperationException e)
+            catch (InvalidOperationException e)
             {
                 NumberOfDeckTurns++;
                 if (NumberOfDeckTurns < 2)
@@ -323,13 +355,13 @@ namespace BoardGameServer.Application
             int discards = Discard.Count;
             Card[] list = new Card[discards];
 
-            for(int i = 0; i < discards; i++)
+            for (int i = 0; i < discards; i++)
             {
                 list[i] = Discard.Pop();
             }
             random.Shuffle(list);
 
-            for(int i = 0; i < discards; i++)
+            for (int i = 0; i < discards; i++)
             {
                 Deck.Push(list[i]);
             }
@@ -339,7 +371,7 @@ namespace BoardGameServer.Application
         //høstet, og om det er noen, skal kortene bli lagt i discard pilen
         public void HarvestField(Player player, Guid field)
         {
-            int count = player.Fields[field].Count();   
+            int count = player.Fields[field].Count();
             if (count == 0)
             {
                 return;
@@ -353,7 +385,7 @@ namespace BoardGameServer.Application
                 {
                     Discard.Push(player.Fields[field][i]);
                 }
-                player.Fields[field].RemoveAll(e=> true);
+                player.Fields[field].RemoveAll(e => true);
             }
         }
         public void HandleGameEnd()
@@ -361,5 +393,5 @@ namespace BoardGameServer.Application
             CurrentState = State.GameDone;
         }
     }
-}   
+}
 

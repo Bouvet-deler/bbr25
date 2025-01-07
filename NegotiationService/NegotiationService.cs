@@ -26,10 +26,6 @@ public class NegotiationService : INegotiationService
 
         _negotiations[negotiation.Id] = negotiation;
 
-        // Start a timer to end the negotiation after 5 seconds - 120 for debugging
-        //This should be set in config file so we can adjust it easily while testing
-        var timer = new Timer(EndNegotiation, negotiation, TimeSpan.FromSeconds(120), Timeout.InfiniteTimeSpan);
-
         return negotiation;
     }
     public NegotiationState? GetNegotiationStatus(Guid id)
@@ -37,12 +33,12 @@ public class NegotiationService : INegotiationService
         return _negotiations.Values.FirstOrDefault(n => n.Id == id);
     }
 
-    public async Task<StatusOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request)
+    public async Task<ResultOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request)
     {
         await _semaphore.WaitAsync();
         try
         {
-            StatusOfferRequest endingOfferRequest = new StatusOfferRequest(request.InitiatorId, request.ReceiverId, request.NegotiationId);
+            ResultOfferRequest endingOfferRequest = new ResultOfferRequest(request.InitiatorId, request.ReceiverId, request.NegotiationId);
 
             if (_negotiations.TryGetValue(request.NegotiationId, out var negotiation) && negotiation.IsActive)
             {
