@@ -1,6 +1,7 @@
 ﻿using BoardGameServer.Application;
-using Negotiator;
+using BoardGameServer.Application.Services;
 using SharedModels;
+using Microsoft.AspNetCore.Mvc;
 namespace BoardGameServerSimple.Endpoints;
 
 public static class GameBoardEndpoints
@@ -9,9 +10,10 @@ public static class GameBoardEndpoints
     {
         var group = routes.MapGroup("/api/game");
 
-        group.MapGet("/", (Game game, string? player) =>
+        group.MapGet("/", ( string? player, [FromServices] GameService gameService) =>
         {
             Guid playerKey;
+            var game = gameService.GetCurrentGame();
             Queue<Card> hand = new Queue<Card>(); ;
             if (Guid.TryParse(player, out playerKey))
             {
@@ -28,8 +30,9 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapPost("/join", (Game game, string name) =>
+        group.MapPost("/join", ( string name, [FromServices] GameService gameService) =>
         {
+            var game = gameService.GetCurrentGame();
             return TypedResults.Ok(game.Join(name));
         })
         .WithOpenApi(op =>
@@ -39,8 +42,9 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapPost("/start", (Game game) =>
+        group.MapPost("/start", ([FromServices] GameService gameService) =>
         {
+            var game = gameService.GetCurrentGame();
             game.StartGame();
             return TypedResults.Ok();
         })
@@ -68,8 +72,8 @@ public static class GameBoardEndpoints
         return new
         {
             CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
-            CurrentPhase = game.CurrentPhase,
-            CurrentMode = game.CurrentState,
+            CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
+            CurrentState = StateUtil.GetDescription(game.CurrentState),
             Deck = game.Deck.Count(),
             AvailableTrades = game.TradingArea,
             DiscardPile = game.Discard,
@@ -85,7 +89,7 @@ public static class GameBoardEndpoints
             })?.ToList(),
             YourHand = hand.Select(c => new
             {
-                FirstCard = hand.Peek() == c,
+                FirstCard = hand.Peek() == c, //Bare for å gjøre det ekstra tydlig hvilket kort de kan spille
                 c.Id,
                 c.Type
             })

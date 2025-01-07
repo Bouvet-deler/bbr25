@@ -9,8 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddSingleton<BoardGameServer.Application.Game>();
-builder.Services.AddSingleton<CardValidator>();
+builder.Services.AddSingleton<ValidationRules>();
 builder.Services.AddSingleton<GameService>();
 builder.Services.AddSingleton<INegotiationService, NegotiationService>();
 builder.Services.AddSingleton<IMessageValidator, MessageValidator>();
