@@ -13,7 +13,8 @@ public class NegotiationService : INegotiationService
     public NegotiationState StartNegotiation(NegotiationRequest request)
     {
         var negotiation = new NegotiationState(
-            request.PlayerId,
+            request.InitiatorId,
+            request.ReceiverId,
             Guid.NewGuid(),
             request.CardsToExchange,
             request.CardsToReceive
@@ -36,12 +37,12 @@ public class NegotiationService : INegotiationService
         return _negotiations.Values.FirstOrDefault(n => n.Id == id);
     }
 
-    public async Task<EndingOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request)
+    public async Task<StatusOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request)
     {
         await _semaphore.WaitAsync();
         try
         {
-            EndingOfferRequest endingOfferRequest = new EndingOfferRequest(request.PlayerId, request.NegotiationId);
+            StatusOfferRequest endingOfferRequest = new StatusOfferRequest(request.InitiatorId, request.ReceiverId, request.NegotiationId);
 
             if (_negotiations.TryGetValue(request.NegotiationId, out var negotiation) && negotiation.IsActive)
             {

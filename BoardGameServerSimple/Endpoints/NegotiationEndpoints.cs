@@ -52,7 +52,7 @@ public static class NegotiationEndpoints
             return op;
         });
 
-        group.MapPost("/respond-negotiation", static async Task<Results<Ok<EndingOfferRequest>, NotFound>> (ResponseToOfferRequest request, [FromServices] INegotiationService negotiationService, [FromServices] MessageValidator messageValidator) =>
+        group.MapPost("/respond-negotiation", static async Task<Results<Ok<StatusOfferRequest>, NotFound>> (ResponseToOfferRequest request, [FromServices] INegotiationService negotiationService, [FromServices] MessageValidator messageValidator) =>
         {
             //Valid card offered?
             if (messageValidator.Validate(request))
@@ -65,7 +65,11 @@ public static class NegotiationEndpoints
             {
                 return TypedResults.NotFound();
             }
-            return TypedResults.Ok<EndingOfferRequest>(status);
+            if(status.OfferStatus == OfferStatus.Accepted)
+            {
+                negotiationService.EndNegotiation(status);
+            }   
+            return TypedResults.Ok<StatusOfferRequest>(status);
         })
         .WithOpenApi(op =>
         {

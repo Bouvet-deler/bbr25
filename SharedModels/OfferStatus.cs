@@ -4,6 +4,7 @@ namespace SharedModels
     {
         Accepted,
         Declined,
+        NewProposal,
         NotValid
     }
 }
