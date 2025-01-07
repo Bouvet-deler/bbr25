@@ -13,7 +13,7 @@ public static class GamePlayingEndpoints
     {
         var group = routes.MapGroup("/api/playing");
 
-        group.MapGet("/{id:guid}", static async Task<Results<Ok<PlayerStatus>, NotFound>> (Guid playerId, [FromServices] GameService gameService, [FromServices] CardValidator cardValidator) =>
+        group.MapGet("/{id:guid}", static async Task<Results<Ok<PlayerStatus>, NotFound>> (Guid playerId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
             var status = gameService.GetStatusPlayer(playerId);
@@ -31,11 +31,11 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapGet("/{id}", static async Task<Results<Ok, BadRequest>> (string player, Guid field, [FromServices] GameService gameService, [FromServices] CardValidator cardValidator) =>
+        group.MapGet("/{id}", static async Task<Results<Ok, BadRequest>> (string player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame(); //Or with Id?
             Guid playerKey;
-            if (!Guid.TryParse(player, out playerKey)) { }
+            if (!Guid.TryParse(player, out playerKey));
             Player p = game.Players.Where(c => c.Id == playerKey).First();
             game.HarvestField(p, field);
             return TypedResults.Ok();
@@ -47,7 +47,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/end-planting", static async Task<Results<Ok<string>, BadRequest>> (string playerKey, [FromServices] GameService gameService, [FromServices] CardValidator cardValidator) =>
+        group.MapPost("/end-planting", static async Task<Results<Ok<string>, BadRequest>> (string playerKey, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
             game.EndPlanting();
@@ -60,9 +60,14 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/plant", static async Task<Results<Ok, BadRequest>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] CardValidator cardValidator) =>
+        group.MapPost("/plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
+
             var game = gameService.GetCurrentGame();
+            Player p = game.Players.Where(c => c.Id == player).First();
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
+            validationRules.PlantingPhaseValidation(game, p, field, errors);
+            return TypedResults.ValidationProblem(errors);
             game.Plant(field);
             return TypedResults.Ok();
         })
@@ -73,7 +78,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/harvest-field", static async Task<Results<Ok, BadRequest>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] CardValidator cardValidator) =>
+        group.MapPost("/harvest-field", static async Task<Results<Ok, BadRequest>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
             Player p = game.Players.Where(c => c.Id == player).First();

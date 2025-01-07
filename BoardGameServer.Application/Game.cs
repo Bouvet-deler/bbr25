@@ -8,9 +8,11 @@ namespace BoardGameServer.Application
         public List<Player> Players;
 
         public State CurrentState;
+
         // Er null om spillet ikke er i gang
         // Laget for å holde styr på hvor i runden vi er
         public Player? CurrentPlayer;
+
         //Holder styr på hvor i turen vi er. 
         public Phase CurrentPhase;
 
@@ -25,7 +27,6 @@ namespace BoardGameServer.Application
         public Game()
         {
             CurrentState = State.Registering;
-
             Players = new List<Player>();
             Discard = new Stack<Card>();
             Deck = new Stack<Card>();
@@ -51,7 +52,6 @@ namespace BoardGameServer.Application
             //forrige if
             if (lastPlayer != null)
             {
-
                 //Siste spiller er ikke lenger siste.
                 lastPlayer.NextPlayer = player;
             }

@@ -1,17 +1,19 @@
 ﻿using SharedModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BoardGameServer.Application.Services
 {
     public class GameService
     {
+        private readonly Game _game;
+        
+        public GameService()
+        {
+            _game = new Game();
+        }
+
         public Game GetCurrentGame()
         {
-            return new Game();
+            return _game;
         }
 
         public PlayerStatus GetStatusPlayer(Guid playerId)
