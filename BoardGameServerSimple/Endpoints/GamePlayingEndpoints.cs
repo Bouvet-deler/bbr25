@@ -1,5 +1,4 @@
-﻿using BoardGameServerSimple.Services;
-using BoardGameServer.Application;
+﻿using BoardGameServer.Application;
 using Microsoft.AspNetCore.Http.HttpResults;
 using SharedModels;
 using BoardGameServer.Application.Services;
@@ -31,27 +30,14 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapGet("/{id}", static async Task<Results<Ok, BadRequest>> (string player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapGet("/{id}", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame(); //Or with Id?
-            Guid playerKey;
-            if (!Guid.TryParse(player, out playerKey));
-            Player p = game.Players.Where(c => c.Id == playerKey).First();
+            Player p = game.Players.Where(c => c.Id == player).First();
+            game.Plant(field);
             game.HarvestField(p, field);
             return TypedResults.Ok();
-        })
-        .WithOpenApi(op =>
-        {
-            op.Summary = "Recieves a field from player to be planted";
-            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
-            return op;
-        });
-
-        group.MapPost("/end-planting", static async Task<Results<Ok<string>, BadRequest>> (string playerKey, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
-        {
-            var game = gameService.GetCurrentGame();
-            game.EndPlanting();
-            return TypedResults.BadRequest();
         })
         .WithOpenApi(op =>
         {
@@ -63,13 +49,35 @@ public static class GamePlayingEndpoints
         group.MapPost("/plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame();
             Player p = game.Players.Where(c => c.Id == player).First();
-            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             validationRules.PlantingPhaseValidation(game, p, field, errors);
-            return TypedResults.ValidationProblem(errors);
+            if (errors.Any()) {
+                return TypedResults.ValidationProblem(errors);
+            }
             game.Plant(field);
             return TypedResults.Ok();
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Recieves which field the card in their hand should be planted to";
+            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
+            return op;
+        });
+
+        group.MapPost("/end-planting", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (Guid player, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        {
+
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
+            var game = gameService.GetCurrentGame();
+            Player p = game.Players.Where(c => c.Id == player).First();
+            validationRules.EndPlantingValidation(game, p, errors);
+            if (errors.Any()) {
+                return TypedResults.ValidationProblem(errors);
+            }
+            game.EndPlanting();
+            return TypedResults.BadRequest();
         })
         .WithOpenApi(op =>
         {
@@ -78,10 +86,58 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/harvest-field", static async Task<Results<Ok, BadRequest>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapPost("/end-trading", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (Guid player, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
+
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame();
             Player p = game.Players.Where(c => c.Id == player).First();
+            validationRules.EndTradingValidation(game, p, errors);
+            if (errors.Any()) 
+            {
+                return TypedResults.ValidationProblem(errors);
+            }
+            game.EndTrading();
+            return TypedResults.BadRequest();
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Recieves a field from player to be planted";
+            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
+            return op;
+        });
+
+        group.MapPost("/trade-plant", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (Guid player, Guid card, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        {
+
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
+            var game = gameService.GetCurrentGame();
+            Player p = game.Players.Where(c => c.Id == player).First();
+            validationRules.TradePlantingPhaseValidation(game, p,card, field, errors);
+            if (errors.Any()) 
+            {
+                return TypedResults.ValidationProblem(errors);
+            }
+            game.EndTrading();
+            return TypedResults.BadRequest();
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Recieves a field from player to be planted";
+            op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card.";
+            return op;
+        });
+
+        group.MapPost("/harvest-field", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        {
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
+            var game = gameService.GetCurrentGame();
+            Player p = game.Players.Where(c => c.Id == player).First();
+            validationRules.HarvestFieldValidation(game, p, field, errors);
+            if (errors.Any()) {
+                return TypedResults.ValidationProblem(errors);
+            }
+            game.Plant(field);
             game.HarvestField(p, field);
             return TypedResults.Ok();
         })

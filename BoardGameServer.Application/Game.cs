@@ -11,7 +11,7 @@ namespace BoardGameServer.Application
 
         // Er null om spillet ikke er i gang
         // Laget for å holde styr på hvor i runden vi er
-        public Player? CurrentPlayer;
+        public Player CurrentPlayer;
 
         //Holder styr på hvor i turen vi er. 
         public Phase CurrentPhase;
@@ -133,7 +133,14 @@ namespace BoardGameServer.Application
             switch (CurrentPhase)
             {
                 case Phase.Planting:
-                    CurrentPhase = Phase.PlantingOptional;
+                    if (CurrentPlayer.Hand.Count() > 0)
+                    {
+                        CurrentPhase = Phase.PlantingOptional;
+                    }
+                    else
+                    {
+                        GoToTradingPhase();
+                    }
                     break;
                 case Phase.PlantingOptional:
                     GoToTradingPhase();
@@ -278,8 +285,13 @@ namespace BoardGameServer.Application
 
             if (!GameEnded)
             {
-                CurrentPhase = Phase.Planting;
                 CurrentPlayer = CurrentPlayer.NextPlayer;
+                if(CurrentPlayer.Hand.Any())
+                {
+                    CurrentPhase = Phase.Planting;
+                }else{
+                    GoToTradingPhase();
+                }
             }
             else
             {
