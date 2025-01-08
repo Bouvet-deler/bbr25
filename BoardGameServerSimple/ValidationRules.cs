@@ -37,7 +37,8 @@ public class ValidationRules
 
         FieldIsValid(player, field, errors);
 
-        FieldIsPlayable(player, player.Hand.Peek(), field, errors);
+        FieldIsPlayable(player, player.Hand.First(), field, errors);
+
 
     }
 
@@ -49,8 +50,7 @@ public class ValidationRules
 
         TradePlantIsValid(game, player, field, errors);
 
-        FieldIsPlayable(player, player.Hand.Peek(), field, errors);
-
+        FieldIsPlayable(player, player.Hand.First(), field, errors);
     }
 
     private static void IsInPlayingState(Game game, IDictionary<string, string[]> errors)

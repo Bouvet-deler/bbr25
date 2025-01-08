@@ -131,13 +131,21 @@ public class GameServiceTests
         }
         game.CurrentPlayer = p2;
         game.CurrentPhase = Phase.Trading;
-        Card offeredCard = p2.Hand.Where(c => c.Type == "ChiliBean").Last();
-        Offer o = new Offer(new List<Card> { offeredCard }, new List<string>());
-        game.StartTrade(_negotiationRequest);
-        game.AcceptTrade(p1, o.Id, new List<Guid>());
+        Card offeredCard = p2.Hand.Where(c => c.Type == "BlackEyedBean").Last();
+        Card wantedCard = p1.Hand.Where(c => c.Type == "GardenBean").Last();
+        var negotiationRequest = new NegotiationRequest(
+            _negotiationRequest.InitiatorId,
+            _negotiationRequest.ReceiverId,
+            _negotiationRequest.NegotiationId,
+            new List<Card> { offeredCard },
+            new List<Card> { wantedCard }
+        );
+        game.OfferTrade(negotiationRequest);
+        var (CurrentPlayerHand, OpponentPlayerHand) = game.AcceptTrade(p1, negotiationRequest.NegotiationId, negotiationRequest.CardsToExchange, negotiationRequest.CardsToReceive);
 
-        Assert.True(p1.TradedCards.Contains(offeredCard));
-        Assert.False(p2.Hand.Contains(offeredCard));
-        Assert.True(p2.Hand.Contains(p2.Hand.Where(c => c.Type == "ChiliBean").Last()));
+        Assert.Contains(wantedCard, CurrentPlayerHand);
+        Assert.DoesNotContain(wantedCard, OpponentPlayerHand);
+        Assert.Contains(offeredCard, OpponentPlayerHand);
+        Assert.DoesNotContain(offeredCard, CurrentPlayerHand);
     }
 }

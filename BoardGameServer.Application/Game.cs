@@ -24,7 +24,7 @@ namespace BoardGameServer.Application
         public Stack<Card> Discard;
         public Random random = new Random();
 
-        //ToDo: Remove this
+        //ToDo: Is this needed?
         public List<Offer> TradingArea;
 
         public INegotiationService NegotiationService { get; }
@@ -115,7 +115,7 @@ namespace BoardGameServer.Application
                 for (int i = 0; i < 5; i++)
                 {
                     Card card = Deck.Pop();
-                    item.Hand.Enqueue(card);
+                    item.Hand.Add(card);
                 }
 
                 for (int i = 0; i < 2; i++)
@@ -133,7 +133,8 @@ namespace BoardGameServer.Application
         public void Plant(Guid field)
         {
             //Domene
-            var card = CurrentPlayer.Hand.Dequeue();
+            var card = CurrentPlayer.Hand[0];
+            CurrentPlayer.Hand.RemoveAt(0);
             CurrentPlayer.Fields[field].Add(card);
             //Tilstand
             switch (CurrentPhase)
@@ -165,8 +166,9 @@ namespace BoardGameServer.Application
             }
         }
 
-        public NegotiationState StartTrade(NegotiationRequest negotiationRequest)
+        public NegotiationState OfferTrade(NegotiationRequest negotiationRequest)
         {
+            this.TradingArea.Add(new Offer( negotiationRequest.CardsToExchange, negotiationRequest.CardsToReceive, negotiationRequest.NegotiationId));
             var negotiationState = NegotiationService.StartNegotiation(negotiationRequest);
             var timer = new System.Timers.Timer(120000); // 2 minutes in milliseconds
             timer.Elapsed += (sender, e) => EndNegotiation(negotiationState);
@@ -176,16 +178,31 @@ namespace BoardGameServer.Application
         }
 
 
-        private async Task Negotiate(ResponseToOfferRequest request)
+        public async Task<ResultOfferRequest> Negotiate(ResponseToOfferRequest request)
         {
             var response = await NegotiationService.RespondToNegotiationAsync(request);
+            Player opponentPlayer = Players.Single(p => p.Id == request.ReceiverId);
             if (response.OfferStatus == OfferStatus.Accepted)
             {
-                AcceptTrade(CurrentPlayer, request.NegotiationId, response.CardsExchanged, response.CardsReceived);
+                var result = AcceptTrade(opponentPlayer, request.NegotiationId, response.CardsExchanged, response.CardsReceived);
+                //ToDo: Global variable?
+                CurrentPlayer.Hand = result.CurrentPlayerHand;
+                var oppontentHand = result.OpponentPlayerHand;
+                return new ResultOfferRequest(CurrentPlayer.Id, opponentPlayer.Id, request.NegotiationId)
+                {
+                    CardsExchanged = response.CardsExchanged,
+                    CardsReceived = response.CardsReceived,
+                    OfferStatus = OfferStatus.Accepted
+                };
             }
-            else if (response.OfferStatus == OfferStatus.Declined)
+            else
             {
-                const string message = "Trade declined";
+                return new ResultOfferRequest(CurrentPlayer.Id, request.ReceiverId, request.NegotiationId)
+                {
+                    OfferStatus = OfferStatus.Declined,
+                    CardsExchanged = new List<Card>(),
+                    CardsReceived = new List<Card>()
+                };
             }
         }
 
@@ -195,56 +212,45 @@ namespace BoardGameServer.Application
             EndTrading(negotiationState);
         }
 
-        public void AcceptTrade(Player player, Guid offerId, List<Card> cardsExchanged, List<Card> cardsReceived)
+        public (List<Card> CurrentPlayerHand, List<Card> OpponentPlayerHand) AcceptTrade(Player opponentPlayer, Guid offerId, List<Card> cardsExchanged, List<Card> cardsReceived)
         {
-            //Finner det kompatible budet i trading acrea
-            //var offeredTrade = TradingArea.Where(offer => offer.Id == offerId).First();
-            //TradingArea.Remove(offeredTrade);
-            Queue<Card> currentPlayerHand = CurrentPlayer.Hand;
-            Queue<Card> currentPlayerNewHand = new Queue<Card>();
-            foreach (var item in currentPlayerHand)
+            List<Card> currentPlayerHand = CurrentPlayer.Hand;
+            List<Card> opponentPlayerHand = opponentPlayer.Hand;
+            List<Card> cardsToRemoveFromCurrentPlayer = new List<Card>();
+
+            foreach (var card in currentPlayerHand)
             {
-                //Fjerner alle kort som ble byttet bort
-                if (cardsExchanged.Any(card => card.Id == item.Id))
+                //Swaps cards from current player to opponent player
+                if (cardsExchanged.Any(exchangedCard => exchangedCard.Id == card.Id))
                 {
-                    currentPlayerNewHand.Enqueue(item);
-                }
-                else
-                {
-                    player.TradedCards.Add(item);
-                }
-            }
-            var drawnCards = CurrentPlayer.DrawnCards;
-            var drawnCardsRemove = new List<Card>();
-            foreach (var item in drawnCards)
-            {
-                //Fjerner alle kort som ble byttet bort
-                if (cardsExchanged.Contains(item))
-                {
-                    player.TradedCards.Add(item);
-                    drawnCardsRemove.Add(item);
+                    opponentPlayerHand.Add(card);
+                    cardsToRemoveFromCurrentPlayer.Add(card);
                 }
             }
 
-            CurrentPlayer.DrawnCards.RemoveAll(c => drawnCardsRemove.Contains(c));
-
-            CurrentPlayer.Hand = currentPlayerNewHand;
-            Queue<Card> playerHand = player.Hand;
-            Queue<Card> playerNewHand = new Queue<Card>();
-            foreach (var item in playerHand)
+            foreach (var card in cardsToRemoveFromCurrentPlayer)
             {
-                //Fjerner alle kort som ble byttet bort
-                if (cardsExchanged.Any(card => card == item.Id))
+                currentPlayerHand.Remove(card);
+            }
+
+            List<Card> cardsToRemoveFromOpponentPlayer = new List<Card>();
+
+            foreach (var cardHand in opponentPlayerHand)
+            {
+                // Remove cards received from opponent player and add to current player hand
+                if (cardsReceived.Any(card => card.Id == cardHand.Id))
                 {
-                    playerNewHand.Enqueue(item);
-                }
-                else
-                {
-                    CurrentPlayer.TradedCards.Add(item);
+                    currentPlayerHand.Add(cardHand);
+                    cardsToRemoveFromOpponentPlayer.Add(cardHand);
                 }
             }
-            player.Hand = playerNewHand;
 
+            foreach (var cardHand in cardsToRemoveFromOpponentPlayer)
+            {
+                opponentPlayerHand.Remove(cardHand);
+            }
+
+            return (currentPlayerHand, opponentPlayerHand);
         }
 
         public void EndTrading(NegotiationState negotiationState)
@@ -304,7 +310,7 @@ namespace BoardGameServer.Application
                 var card = DrawCard();
                 if (card != null)
                 {
-                    CurrentPlayer.Hand.Enqueue(card);
+                    CurrentPlayer.Hand.Add(card);
                 }
             }
 

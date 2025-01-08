@@ -105,7 +105,7 @@ public static class GamePlayingEndpoints
             if (messageValidator.Validate(negotiationRequest))
             {
                 //The id of the response needs to be stored in the game state for others to query it.
-                response = game.StartTrade(negotiationRequest);
+                response = game.OfferTrade(negotiationRequest);
                 return TypedResults.Ok(response);
             }
             return TypedResults.NotFound();
@@ -135,7 +135,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/respond-negotiation", static async Task<Results<Ok<ResultOfferRequest>, NotFound>> (ResponseToOfferRequest request, [FromServices] INegotiationService negotiationService, [FromServices] GameService gameService, [FromServices] MessageValidator messageValidator) =>
+        group.MapPost("/negotiation", static async Task<Results<Ok<ResultOfferRequest>, NotFound>> (ResponseToOfferRequest request, [FromServices] INegotiationService negotiationService, [FromServices] GameService gameService, [FromServices] MessageValidator messageValidator) =>
         {
             var game = gameService.GetCurrentGame();
             //Valid card offered?
@@ -144,18 +144,20 @@ public static class GamePlayingEndpoints
                 return TypedResults.NotFound();
             }
 
-            var status = await negotiationService.RespondToNegotiationAsync(request);
-            if (status == null)
-            {
-                return TypedResults.NotFound();
-            }
-            if (status.OfferStatus == OfferStatus.Accepted)
-            {
-                NegotiationState negotiationState = CreateFinalnegotiationState(status);
-                negotiationService.EndNegotiation(negotiationState);
-                game.EndTrading(negotiationState);
-            }
-            return TypedResults.Ok<ResultOfferRequest>(status);
+                //var status = await negotiationService.RespondToNegotiationAsync(request);
+                //ToDo: Get player
+                var status = await game.Negotiate(request);
+                if (status == null)
+                {
+                    return TypedResults.NotFound();
+                }
+                if (status.OfferStatus == OfferStatus.Accepted)
+                {
+                    NegotiationState negotiationState = CreateFinalnegotiationState(status);
+                    negotiationService.EndNegotiation(negotiationState);
+                    game.EndTrading(negotiationState);
+                }
+                return TypedResults.Ok<ResultOfferRequest>(status);
         })
         .WithOpenApi(op =>
         {
