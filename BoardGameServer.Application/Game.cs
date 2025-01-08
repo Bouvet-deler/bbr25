@@ -260,7 +260,7 @@ namespace BoardGameServer.Application
             return (currentPlayerHand, opponentPlayerHand);
         }
 
-        public void EndTrading(NegotiationState negotiationState)
+        public void EndTrading(Guid negotiationÏd)
         {
             TradingArea.Clear();
             switch (CurrentPhase)

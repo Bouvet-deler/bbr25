@@ -5,6 +5,7 @@ using BoardGameServer.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using Negotiator.Models;
 using Negotiator;
+using BoardGameServerSimple.Services;
 
 namespace BoardGameServerSimple.Endpoints;
 
@@ -88,7 +89,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/end-trading", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (Guid player, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapPost("/end-trading", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (Guid player, NegotiationState negotiationState, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
@@ -99,7 +100,7 @@ public static class GamePlayingEndpoints
             {
                 return TypedResults.ValidationProblem(errors);
             }
-            game.EndTrading();
+            game.EndTrading(negotiationState.Id);
             return TypedResults.BadRequest();
         })
         .WithOpenApi(op =>
@@ -109,18 +110,18 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/trade-plant", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (Guid player, Guid card, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapPost("/trade-plant", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (Guid playerId, Guid negotiationId, Guid card, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame();
-            Player p = game.Players.Where(c => c.Id == player).First();
+            Player p = game.Players.Where(c => c.Id == playerId).First();
             validationRules.TradePlantingPhaseValidation(game, p,card, field, errors);
             if (errors.Any()) 
             {
                 return TypedResults.ValidationProblem(errors);
             }
-            game.EndTrading();
+            game.EndTrading(negotiationId);
             return TypedResults.BadRequest();
         })
         .WithOpenApi(op =>
@@ -211,7 +212,7 @@ public static class GamePlayingEndpoints
                 {
                     NegotiationState negotiationState = CreateFinalnegotiationState(status);
                     negotiationService.EndNegotiation(negotiationState);
-                    game.EndTrading(negotiationState);
+                    game.EndTrading(request.NegotiationId);
                 }
                 return TypedResults.Ok<ResultOfferRequest>(status);
         })
