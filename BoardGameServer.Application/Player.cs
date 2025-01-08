@@ -11,7 +11,7 @@ namespace BoardGameServer.Application
         public Player? NextPlayer = null;
 
         //Kort som kun skal vises til denne spilleren.
-        public Queue<Card> Hand = new Queue<Card>();
+        public List<Card> Hand = new List<Card>();
 
         //Beholder for kortene som man har byttet til seg ila trading fasen
         public List<Card> TradedCards = new List<Card>();

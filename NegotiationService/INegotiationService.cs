@@ -8,7 +8,7 @@ namespace Negotiator
     {
         NegotiationState StartNegotiation(NegotiationRequest request);
         NegotiationState? GetNegotiationStatus(Guid id);
-        Task<EndingOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request);
+        Task<ResultOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request);
         void EndNegotiation(object? state);
     }
 }

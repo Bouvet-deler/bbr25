@@ -19,7 +19,6 @@ var app = builder.Build();
 app.MapOpenApi();
 app.MapGameBoardEndpoints();
 app.MapPlayerEndpoints();
-app.MapNegotiationEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

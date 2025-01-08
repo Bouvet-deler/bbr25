@@ -1,41 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Moq;
-using Xunit;
-using Negotiator;
-using SharedModels;
+﻿using SharedModels;
 
 namespace Negotiator.Tests
 {
     public class NegotiationServiceTests
     {
         private readonly NegotiationService _negotiationService;
+        private readonly NegotiationRequest _request;
 
         public NegotiationServiceTests()
         {
             _negotiationService = new NegotiationService();
+            _request = new NegotiationRequest(
+                InitiatorId:Guid.NewGuid(),   
+                ReceiverId:new Guid(),
+                NegotiationId : Guid.NewGuid(),
+                CardsToExchange: new List<Card> { Card.BlackEyedBean() },
+                CardsToReceive: new List<Card> { Card.ChiliBean() }
+            );
         }
 
         [Fact]
         public void StartNegotiation_ShouldCreateNewNegotiation()
         {
-            // Arrange
-            var request = new NegotiationRequest(
-                Guid.NewGuid(), // PlayerId
-                Guid.NewGuid(), // NegotiationId
-                new List<Card> { Card.BlackEyedBean() }, // CardsToExchange
-                new List<Card> { Card.ChiliBean() } // CardsToReceive
-            );
-
             // Act
-            var result = _negotiationService.StartNegotiation(request);
+            var result = _negotiationService.StartNegotiation(_request);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(request.PlayerId, result.Initiator);
-            Assert.Equal(request.CardsToExchange, result.CardOffered);
-            Assert.Equal(request.CardsToReceive, result.CardWanted);
+            Assert.Equal(_request.InitiatorId, result.Initiator);
+            Assert.Equal(_request.ReceiverId, result.Receiver);
+            Assert.Equal(_request.CardsToExchange, result.CardOffered);
+            Assert.Equal(_request.CardsToReceive, result.CardWanted);
             Assert.True(result.IsActive);
         }
 
@@ -43,13 +38,7 @@ namespace Negotiator.Tests
         public void GetNegotiationStatus_ShouldReturnCorrectNegotiation()
         {
             // Arrange
-            var request = new NegotiationRequest(
-                Guid.NewGuid(), // PlayerId
-                Guid.NewGuid(), // NegotiationId
-                new List<Card> { Card.BlackEyedBean() }, // CardsToExchange
-                new List<Card> { Card.ChiliBean() } // CardsToReceive
-            );
-            var negotiation = _negotiationService.StartNegotiation(request);
+            var negotiation = _negotiationService.StartNegotiation(_request);
 
             // Act
             var result = _negotiationService.GetNegotiationStatus(negotiation.Id);
@@ -63,17 +52,12 @@ namespace Negotiator.Tests
         public async Task RespondToNegotiationAsync_ShouldReturnAcceptedOffer()
         {
             // Arrange
-            var request = new NegotiationRequest(
-                Guid.NewGuid(), // PlayerId
-                Guid.NewGuid(), // NegotiationId
-                new List<Card> { Card.BlackEyedBean() }, // CardsToExchange
-                new List<Card> { Card.ChiliBean() } // CardsToReceive
-            );
-            var negotiation = _negotiationService.StartNegotiation(request);
+            var negotiation = _negotiationService.StartNegotiation(_request);
             negotiation.OfferAccepted = true;
 
             var responseRequest = new ResponseToOfferRequest(
-                request.PlayerId, // PlayerId
+                _request.InitiatorId,
+                _request.ReceiverId,
                 negotiation.Id, // NegotiationId
                 true // OfferAccepted
             );
@@ -91,17 +75,12 @@ namespace Negotiator.Tests
         public async Task RespondToNegotiationAsync_ShouldReturnDeclinedOffer()
         {
             // Arrange
-            var request = new NegotiationRequest(
-                Guid.NewGuid(), // PlayerId
-                Guid.NewGuid(), // NegotiationId
-                new List<Card> { Card.BlackEyedBean() }, // CardsToExchange
-                new List<Card> { Card.ChiliBean() } // CardsToReceive
-            );
-            var negotiation = _negotiationService.StartNegotiation(request);
+            var negotiation = _negotiationService.StartNegotiation(_request);
             negotiation.OfferAccepted = false;
 
             var responseRequest = new ResponseToOfferRequest(
-                request.PlayerId, // PlayerId
+                _request.InitiatorId,
+                _request.ReceiverId,
                 negotiation.Id, // NegotiationId
                 false // OfferAccepted
             );
@@ -119,13 +98,7 @@ namespace Negotiator.Tests
         public void EndNegotiation_ShouldSetNegotiationToInactive()
         {
             // Arrange
-            var request = new NegotiationRequest(
-                Guid.NewGuid(), // PlayerId
-                Guid.NewGuid(), // NegotiationId
-                new List<Card> { Card.BlackEyedBean() }, // CardsToExchange
-                new List<Card> { Card.ChiliBean() } // CardsToReceive
-            );
-            var negotiation = _negotiationService.StartNegotiation(request);
+            var negotiation = _negotiationService.StartNegotiation(_request);
 
             // Act
             _negotiationService.EndNegotiation(negotiation);

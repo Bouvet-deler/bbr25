@@ -34,7 +34,10 @@ public class ValidationRules
         IsInPlantingPhase(game, player, errors);
         IsCurrentPlayer(game, player, errors);
         FieldIsValid(player, field, errors);
-        FieldIsPlayable(player, player.Hand.Peek(), field, errors);
+
+        FieldIsPlayable(player, player.Hand.First(), field, errors);
+
+
     }
 
     public void TradePlantingPhaseValidation(Game game, Player player, Guid card, Guid field, IDictionary<string, string[]> errors)
