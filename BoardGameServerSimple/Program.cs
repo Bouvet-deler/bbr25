@@ -1,6 +1,7 @@
 using BoardGameServer.Application.Services;
 using BoardGameServerSimple.Endpoints;
 using BoardGameServerSimple.Services;
+using ScoringService;
 using Negotiator;
 using Scalar.AspNetCore;
 
@@ -13,6 +14,8 @@ builder.Services.AddSingleton<ValidationRules>();
 builder.Services.AddSingleton<GameService>();
 builder.Services.AddSingleton<INegotiationService, NegotiationService>();
 builder.Services.AddSingleton<IMessageValidator, MessageValidator>();
+builder.Services.AddSingleton<EloCalculator, EloCalculator>();
+builder.Services.AddSingleton<IScoreRepository, ScoreRepository>();
 
 var app = builder.Build();
 

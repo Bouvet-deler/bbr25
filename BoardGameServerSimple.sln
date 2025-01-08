@@ -7,13 +7,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServerSimple", "Bo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServer.Tests", "BoardGameServer.Tests\BoardGameServer.Tests.csproj", "{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServer.Application", "BoardGameServer.Application\BoardGameServer.Application.csproj", "{06A46C64-AB25-4AB4-80DC-E1073B50DC36}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Negotiator", "NegotiationService\Negotiator.csproj", "{BAFC3BAC-90AC-4CD3-986B-FC709C5385BB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedModels", "SharedModels\SharedModels.csproj", "{0964C740-528D-4001-BFAA-4647649E3670}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NegotiatorService.Tests", "NegotiatorService.Tests\NegotiatorService.Tests.csproj", "{83CEB7F9-578E-4409-808A-5A32FEFC9D46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScoringService", "ScoringService\ScoringService.csproj", "{2AFB8AE4-1F92-4D49-8FE2-DB67ED2FCD0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardGameServer.Application", "BoardGameServer.Application\BoardGameServer.Application.csproj", "{99AEF43F-C325-4394-A039-12DBBDD8B30E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +31,6 @@ Global
 		{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94544B9E-FC37-4D45-99AD-C4CF3CF5BD42}.Release|Any CPU.Build.0 = Release|Any CPU
-		{06A46C64-AB25-4AB4-80DC-E1073B50DC36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{06A46C64-AB25-4AB4-80DC-E1073B50DC36}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{06A46C64-AB25-4AB4-80DC-E1073B50DC36}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{06A46C64-AB25-4AB4-80DC-E1073B50DC36}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BAFC3BAC-90AC-4CD3-986B-FC709C5385BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BAFC3BAC-90AC-4CD3-986B-FC709C5385BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAFC3BAC-90AC-4CD3-986B-FC709C5385BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -45,6 +43,14 @@ Global
 		{83CEB7F9-578E-4409-808A-5A32FEFC9D46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83CEB7F9-578E-4409-808A-5A32FEFC9D46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83CEB7F9-578E-4409-808A-5A32FEFC9D46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AFB8AE4-1F92-4D49-8FE2-DB67ED2FCD0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AFB8AE4-1F92-4D49-8FE2-DB67ED2FCD0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AFB8AE4-1F92-4D49-8FE2-DB67ED2FCD0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AFB8AE4-1F92-4D49-8FE2-DB67ED2FCD0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99AEF43F-C325-4394-A039-12DBBDD8B30E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99AEF43F-C325-4394-A039-12DBBDD8B30E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99AEF43F-C325-4394-A039-12DBBDD8B30E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99AEF43F-C325-4394-A039-12DBBDD8B30E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

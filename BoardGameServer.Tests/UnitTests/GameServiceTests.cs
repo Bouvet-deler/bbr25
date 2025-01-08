@@ -4,11 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SharedModels;
+using ScoringService;
 namespace BoardGameServer.Tests.UnitTests
 {
     public class GameServiceTests
     {
-
+        private readonly IScoreRepository _scoreRepository ;
+        private readonly EloCalculator _eloCalculator ;
+        
+        public GameServiceTests()
+        {
+            _scoreRepository = new ScoreRepository();
+            _eloCalculator = new EloCalculator(_scoreRepository, 30);
+        }
         //Følgende tester bør vi ha
         //-- Sett registrer div spillere
         //sjekker at rekkefølgen er lik
@@ -17,7 +25,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         void StartGameWithOnePlayer_PlayerIsSetUp()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             string name = "Bendert";
             game.Join(name);
             game.StartGame();
@@ -33,7 +41,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         void StartGameWithTwoPlayers_PlayerTwoIsSetUp()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             string name = "Bendert";
             game.Join("Først");
             game.Join(name);
@@ -48,7 +56,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         void StartGameWithThreePlayers_OnlyOneStartingPlayer()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             string name = "Bendert";
             game.Join("Først");
             game.Join("Andre");
@@ -61,7 +69,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         void JoinGame_PlayerCountIncreases()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Først");
             Assert.True(game.Players.Count() == 1);
             string name = "Bendert";
@@ -72,7 +80,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         void JoinGame()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Først");
             Assert.True(game.Players.Count() == 1);
             string name = "Bendert";
@@ -83,7 +91,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         void GoToPlantingPhase_AddsCardsToHand()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Først");
             string name = "Bendert";
             game.Join(name);
@@ -99,7 +107,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         void Trade_TradeAwayLastChilibean_LastChilibeanRemoved()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Først");
             string name = "Bendert";
             game.Join(name);

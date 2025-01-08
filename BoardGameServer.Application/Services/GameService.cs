@@ -1,4 +1,5 @@
-﻿using SharedModels;
+﻿using ScoringService;
+using SharedModels;
 
 namespace BoardGameServer.Application.Services
 {
@@ -6,9 +7,9 @@ namespace BoardGameServer.Application.Services
     {
         private readonly Game _game;
         
-        public GameService()
+        public GameService(EloCalculator elocalculator)
         {
-            _game = new Game();
+            _game = new Game(elocalculator);
         }
 
         public Game GetCurrentGame()

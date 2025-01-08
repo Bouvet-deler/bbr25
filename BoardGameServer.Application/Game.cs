@@ -1,3 +1,4 @@
+using ScoringService;
 using SharedModels;
 
 namespace BoardGameServer.Application
@@ -21,18 +22,22 @@ namespace BoardGameServer.Application
         public Stack<Card> Deck;
         public Stack<Card> Discard;
         public Random random = new Random();
+        private readonly EloCalculator _eloCalculator;
 
         public List<Offer> TradingArea;
 
-        public Game()
+        public Game(EloCalculator eloCalculator)
         {
+            _eloCalculator = eloCalculator;
             CurrentState = State.Registering;
             Players = new List<Player>();
             Discard = new Stack<Card>();
             Deck = new Stack<Card>();
             TradingArea = new List<Offer>();
+            
         }
 
+        //TODO registrer spillerene i eloRatingen
         public Guid Join(string name)
         {
             var player = new Player(name);
@@ -41,6 +46,7 @@ namespace BoardGameServer.Application
             {
                 //Det er ingen andre spillere. Vi er vår egen neste
                 player.NextPlayer = player;
+                player.StartingPlayer = true;
             }
             else
             {
@@ -118,7 +124,6 @@ namespace BoardGameServer.Application
                 }
             }
 
-            Players.FirstOrDefault().StartingPlayer = true;
             CurrentState = State.Playing;
             CurrentPhase = Phase.Planting;
             CurrentPlayer = Players.Single(p=> p.StartingPlayer);
@@ -186,7 +191,8 @@ namespace BoardGameServer.Application
                 if (!offeredTrade.OfferedCards.Any(card =>card.Id == item.Id))
                 {
                     currentPlayerNewHand.Enqueue(item);
-                }else
+                }
+                else
                 {
                     player.TradedCards.Add(item);
                 }
@@ -371,6 +377,15 @@ namespace BoardGameServer.Application
         public void HandleGameEnd()
         {
             CurrentState = State.GameDone;
+            var players = Players.OrderBy(p=> p.Coins).Select(p=> p.Name).ToList<string>();
+            _eloCalculator.ScoreGame(players);
+        }
+    }
+    internal class PlayerComparator : IComparer<Player>
+    {
+        public int Compare(Player? x, Player? y)
+        {
+            return x.Coins - y.Coins;
         }
     }
 }   

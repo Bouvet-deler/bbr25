@@ -4,14 +4,23 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using SharedModels;
+using ScoringService;
 namespace BoardGameServer.Tests.UnitTests
 {
     public class StateFlowTests
     {
+            private readonly IScoreRepository _scoreRepository ;
+            private readonly EloCalculator _eloCalculator ;
+
+            public StateFlowTests()
+            {
+                _scoreRepository = new ScoreRepository();
+                _eloCalculator = new EloCalculator(_scoreRepository, 30);
+            }
         [Fact]
         public void PlantWhenInPlantingPhaseTakesYouToPlantingOptional()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -24,7 +33,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void PlantWhenInPlantingOptionalTakesYouToTrading()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -38,7 +47,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void EndPlantingInPlantingOptionalTakesYouToTrading()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -52,7 +61,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void EndTradingInPlantingOptionalTakesYouToTradePlanting()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -68,7 +77,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void EndPlantingInPlantingTakesYouToTrading()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -83,7 +92,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void PlantTradeFinalCallMakesItTheNextPlayersTurn()
         {
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -111,7 +120,7 @@ namespace BoardGameServer.Tests.UnitTests
         public void GameRoundTwoPlayers_PlantInFirstField()
         {
             int numCards = 104;
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Benny");
             game.Join("Bjørn");
             game.StartGame();
@@ -119,7 +128,7 @@ namespace BoardGameServer.Tests.UnitTests
             Player p2 = game.Players[1];
             Assert.True(p1.StartingPlayer);
             numCards -= 10; // 5 per spiller
-            
+
             Guid fieldP1 = p1.Fields.Keys.First();
             game.Plant(fieldP1);
             game.EndPlanting();
@@ -130,7 +139,7 @@ namespace BoardGameServer.Tests.UnitTests
             {
                 var card = p1.DrawnCards.First();
                 game.PlantTrade(p1, card, fieldP1);
-                            
+
             }
             numCards -= 3; // 3 trekkes av spiller
             Assert.True(game.Deck.Count() == numCards);
@@ -181,7 +190,7 @@ namespace BoardGameServer.Tests.UnitTests
         public void GameRoundTwoPlayers_HilmarActuallyPlays()
         {
             int numCards = 104;
-            Game game = new Game();
+            Game game = new Game(_eloCalculator);
             game.Join("Albert");
             game.Join("Bjørn");
             game.Join("Catrin");
@@ -282,13 +291,13 @@ namespace BoardGameServer.Tests.UnitTests
             game.Plant(bjørnFields[1]);
             game.Plant(bjørnFields[0]);
 
-                   Offer offer =new Offer(
-                   bjørn.DrawnCards.Where(c=>c.Type =="SoyBean").ToList(),
-                   new List<string>(){"ChiliBean", "StinkBean"});
+            Offer offer =new Offer(
+                    bjørn.DrawnCards.Where(c=>c.Type =="SoyBean").ToList(),
+                    new List<string>(){"ChiliBean", "StinkBean"});
             game.OfferTrade(offer);
 
             game.AcceptTrade(albert,offer.Id, 
-                   albert.Hand.Where(c=>c.Type =="ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
+                    albert.Hand.Where(c=>c.Type =="ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
 
             game.EndTrading();
             Assert.True(bjørn.DrawnCards.Count() == 1);
@@ -322,14 +331,14 @@ namespace BoardGameServer.Tests.UnitTests
             game.Plant(catrinFields[0]);
             game.EndTrading();
             game.PlantTrade(catrin, 
-                   catrin.DrawnCards.Where(c=>c.Type =="BlueBean").First(),catrinFields[1]);
+                    catrin.DrawnCards.Where(c=>c.Type =="BlueBean").First(),catrinFields[1]);
             game.HarvestField(catrin,catrinFields[1]);
             foreach(var card in catrin.Hand)
             {
                 Console.WriteLine(card.Type);
             }
             game.PlantTrade(catrin, 
-                   catrin.DrawnCards.Where(c=>c.Type =="BlackEyedBean").First(),catrinFields[1]);
+                    catrin.DrawnCards.Where(c=>c.Type =="BlackEyedBean").First(),catrinFields[1]);
             Assert.True(game.Deck.Count() + game.Discard.Count()+
                     albert.Hand.Count() +
                     bjørn.Hand.Count() +

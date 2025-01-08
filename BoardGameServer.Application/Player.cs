@@ -24,11 +24,12 @@ namespace BoardGameServer.Application
 
         //Er spilleren startspiller?
         public bool StartingPlayer;
+        public int PlayingPosition;
 
         //
         public int Coins = 0;
         //Egenregistrert navn
-        public string? Name;
+        public string Name;
 
         public Player(string name)
         {
