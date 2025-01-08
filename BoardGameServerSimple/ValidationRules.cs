@@ -11,9 +11,9 @@ public class ValidationRules
 
     public void EndPlantingValidation(Game game, Player player, IDictionary<string, string[]> errors)
     {
+        IsCurrentPlayer(game, player, errors);
         IsInPlayingState(game, errors);
         IsInPlantingPhase(game, player, errors);
-        IsCurrentPlayer(game, player, errors);
     }
     public void EndTradingValidation(Game game, Player player, IDictionary<string, string[]> errors)
     {
@@ -63,7 +63,7 @@ public class ValidationRules
     {
         if( game.CurrentState != State.Playing)
         {
-            errors["CurrentPhase"] = ["CurrentPhase må være Trading for å kunne avslutte trading fasen"];
+            errors["Teknisk regel 3"] = ["CurrentPhase må være Trading for å kunne avslutte trading fasen"];
         }
     }
 
@@ -71,7 +71,7 @@ public class ValidationRules
     {
         if( game.CurrentState != State.Playing)
         {
-            errors["CurrentState"] = ["CurrentState må være Playing for å kunne gjøre spill-handlinger"];
+            errors["Teknisk regel 1"] = ["CurrentState må være Playing for å kunne gjøre spill-handlinger"];
         }
     }
 
@@ -79,7 +79,7 @@ public class ValidationRules
     {
         if( game.CurrentPhase != Phase.TradePlanting)
         {
-            errors["CurrentPhase"] = ["CurrentPhase må være Planting eller PlantingOptional for å kunne gjøre en plant"];
+            errors["Teknisk regel 3"] = ["CurrentPhase må være Planting eller PlantingOptional for å kunne gjøre en plant"];
         }
     }
 
@@ -87,7 +87,7 @@ public class ValidationRules
     {
         if( game.CurrentPhase != Phase.Planting || game.CurrentPhase == Phase.PlantingOptional)
         {
-            errors["CurrentPlayer"] = ["Du kan bare gjøre denne handlingen på din tur"];
+            errors["Teknisk regel 3"] = ["Du kan bare gjøre denne handlingen på din tur"];
         }
     }
 
@@ -95,7 +95,7 @@ public class ValidationRules
     {
         if(game.CurrentPlayer.Id != player.Id)
         {
-            errors["CurrentPlayer"] = ["Du kan bare gjøre handlinger på din tur"];
+            errors["Teknisk regel 2"] = ["Du kan bare gjøre handlinger på din tur"];
         }
     }
 
@@ -103,7 +103,7 @@ public class ValidationRules
     {
         if(!(player.DrawnCards.Any(c => c.Id == card) || player.TradedCards.Any(c => c.Id == card)))
         {
-            errors["Tradeplanting"] = ["Kortet du forsøkte å plante finnes ikke i de trukkede eller byttede kortene"];
+            errors["Teknisk regel 3"] = ["Kortet du forsøkte å plante finnes ikke i de trukkede eller byttede kortene"];
         } 
     }
 
@@ -111,7 +111,7 @@ public class ValidationRules
     {
         if(!player.Fields.ContainsKey(field))
         {
-            errors["Field"] = ["Du har oppgitt et field som ikke eksisterer"];
+            errors["Teknisk regel 4"] = ["Du har oppgitt et field som ikke eksisterer"];
         }
     }
 
@@ -123,6 +123,7 @@ public class ValidationRules
             if(cardInField.Type != card.Type)
             {
 
+            errors["Spillregel 1"] = ["Dette feltet har en annen bønnetype i seg"];
             }
         }
         //Hent kort i feltet og sjekk typen
