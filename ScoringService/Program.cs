@@ -1,7 +1,7 @@
 ﻿using ScoringService;
 
 var scoreRepo = new ScoreRepository();
-var scoreService = new EloCalculator(scoreRepo, 30);
+var scoreService = new EloCalculator(scoreRepo);
 
 var player1 = "Player1";
 var player2 = "Player2";
@@ -11,7 +11,6 @@ scoreRepo.NewPlayer(player1);
 scoreRepo.NewPlayer(player2);
 scoreRepo.NewPlayer(player3);
 scoreRepo.NewPlayer(player4);
-
 
 List<string>ranking  = [player2, player1, player3, player4];
 scoreService.ScoreGame(ranking);

@@ -1,9 +1,9 @@
-namespace SharedModels
+namespace SharedModels;
+
+public enum OfferStatus
 {
-    public enum OfferStatus
-    {
-        Accepted,
-        Declined,
-        NotValid
-    }
+    Accepted,
+    Declined,
+    NewProposal,
+    NotValid
 }

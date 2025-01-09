@@ -34,7 +34,7 @@ public class ValidationRules
         IsInPlantingPhase(game, player, errors);
         IsCurrentPlayer(game, player, errors);
         FieldIsValid(player, field, errors);
-        FieldIsPlayable(player, player.Hand.Peek(), field, errors);
+        FieldIsPlayable(player, player.Hand.First(), field, errors);
     }
 
     public void TradePlantingPhaseValidation(Game game, Player player, Guid card, Guid field, IDictionary<string, string[]> errors)
@@ -43,6 +43,19 @@ public class ValidationRules
         IsInTradePlantingPhase(game, player, errors);
         TradePlantIsValid(game, player, card, errors);
         FieldIsPlayable(player,player.DrawnCards.Where(c => c.Id == card).Union(player.TradedCards.Where(c => c.Id == card)).Single() , field, errors);
+    }
+
+    public void NegotiationValidation(Game game, Player player, ResponseToOfferRequest negotiationRequest, IDictionary<string, string[]> errors)
+    {
+        IsInPlayingState(game, errors);
+        IsCurrentPlayer(game, player, errors);
+        IsInTradingPhase(game, errors);
+    }
+    public void StartNegotiationValidation(Game game, Player player, NegotiationRequest negotiationRequest, IDictionary<string, string[]> errors)
+    {
+        IsInPlayingState(game, errors);
+        IsCurrentPlayer(game, player, errors);
+        IsInTradingPhase(game, errors);
     }
 
     private void RuleOfBeanProtection(Game game, Player player, Guid field, IDictionary<string, string[]> errors)

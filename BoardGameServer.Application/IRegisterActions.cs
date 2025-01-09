@@ -1,8 +1,7 @@
-namespace BoardGameServer.Application
+namespace BoardGameServer.Application;
+
+public interface IRegisterActions
 {
-    public interface IRegisterActions
-    {
-        Guid Join(string name);
-        void StartGame();
-    }
+    Guid Join(string name);
+    void StartGame();
 }

@@ -2,14 +2,13 @@ namespace ScoringService
 {
     public class EloCalculator
     {
-        private readonly int _k;
+        private readonly int _k = 30;
         private readonly IScoreRepository _scoreRepository;
 
-        public EloCalculator(IScoreRepository scoreRepository, int k)
+        public EloCalculator(IScoreRepository scoreRepository)
         {
 
             _scoreRepository = scoreRepository;
-            _k = k;
         }
 
         /// <summary>
