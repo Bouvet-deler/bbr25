@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SharedModels
+namespace SharedModels;
+
+public class PlayerStatus
 {
-    public class PlayerStatus
-    {
-    }
 }

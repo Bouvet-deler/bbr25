@@ -1,10 +1,9 @@
 using SharedModels;
 
-namespace BoardGameServerSimple.Services
+namespace BoardGameServerSimple.Services;
+
+public interface IMessageValidator
 {
-    public interface IMessageValidator
-    {
-        bool Validate(ResponseToOfferRequest response);
-        bool Validate(NegotiationRequest negotiationRequest);
-    }
+    bool Validate(ResponseToOfferRequest response);
+    bool Validate(NegotiationRequest negotiationRequest);
 }

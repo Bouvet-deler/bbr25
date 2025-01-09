@@ -16,8 +16,8 @@ public class NegotiationService : INegotiationService
             request.InitiatorId,
             request.ReceiverId,
             Guid.NewGuid(),
-            request.CardsToExchange,
-            request.CardsToReceive
+            request.OfferedCards,
+            request.CardTypesWanted
         )
         {
             StartTime = DateTime.UtcNow,
@@ -46,20 +46,22 @@ public class NegotiationService : INegotiationService
                 {
                     //Swap cards
                     endingOfferRequest.OfferStatus = OfferStatus.Accepted;
-                    endingOfferRequest.CardsExchanged = negotiation.CardOffered;
-                    endingOfferRequest.CardsReceived = negotiation.CardWanted;
+                    endingOfferRequest.CardsOffered = negotiation.CardOffered;
+                    //ToDO: Need to swap real cards, not only type
+                    //endingOfferRequest.CardsReceived = negotiation.CardWanted;
                     return endingOfferRequest;
                 }
                 if (!negotiation.OfferAccepted)
                 {
                     endingOfferRequest.OfferStatus = OfferStatus.Declined;
-                    endingOfferRequest.CardsExchanged = negotiation.CardWanted;
+                    //ToDO: Need to swap real cards, not only type
+                    //endingOfferRequest.CardsExchanged = negotiation.CardWanted;
                     endingOfferRequest.CardsReceived = negotiation.CardOffered;
                     return endingOfferRequest;
                 }
             }
             endingOfferRequest.OfferStatus = OfferStatus.NotValid;
-            endingOfferRequest.CardsExchanged = new List<Card>();
+            endingOfferRequest.CardsOffered = new List<Card>();
             endingOfferRequest.CardsReceived =  new List<Card>();
             return endingOfferRequest;
         }
