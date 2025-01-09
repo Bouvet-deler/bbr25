@@ -1,29 +1,27 @@
-namespace BoardGameServer.Application
+namespace BoardGameServer.Application;
+public enum Phase
 {
-    public enum Phase
+    Planting,
+    PlantingOptional,
+    Trading,
+    TradePlanting,
+}
+public static class PhaseUtil
+{
+    public static string GetDescription(Phase phase)
     {
-        Planting,
-        PlantingOptional,
-        Trading,
-        TradePlanting,
-    }
-    public static class PhaseUtil
-    {
-        public static string GetDescription(Phase phase)
+        switch (phase)
         {
-            switch (phase)
-            {
-                case Phase.Planting:
-                    return "Planting";
-                case Phase.PlantingOptional:
-                    return "PlantingOptional";
-                case Phase.Trading:
-                    return "Trading";
-                case Phase.TradePlanting:
-                    return "TradePlanting";
-                default:
-                    return "Undefined phase";
-            }
+            case Phase.Planting:
+                return "Planting";
+            case Phase.PlantingOptional:
+                return "PlantingOptional";
+            case Phase.Trading:
+                return "Trading";
+            case Phase.TradePlanting:
+                return "TradePlanting";
+            default:
+                return "Undefined phase";
         }
     }
 }

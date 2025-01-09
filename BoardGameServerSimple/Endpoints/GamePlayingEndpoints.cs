@@ -100,7 +100,7 @@ public static class GamePlayingEndpoints
             {
                 return TypedResults.ValidationProblem(errors);
             }
-            game.EndTrading(negotiationState.Id);
+            game.EndTrading();
             return TypedResults.BadRequest();
         })
         .WithOpenApi(op =>
@@ -121,7 +121,7 @@ public static class GamePlayingEndpoints
             {
                 return TypedResults.ValidationProblem(errors);
             }
-            game.EndTrading(negotiationId);
+            game.EndTrading();
             return TypedResults.BadRequest();
         })
         .WithOpenApi(op =>
@@ -161,8 +161,9 @@ public static class GamePlayingEndpoints
             //Server needs to validate the message from the player.
             if (messageValidator.Validate(negotiationRequest))
             {
-                //The id of the response needs to be stored in the game state for others to query it.
-                response = game.OfferTrade(negotiationRequest);
+                //ToDo: The id of the response needs to be stored in the game state for others to query it.
+                game.OfferTrade(negotiationRequest);
+                response = new NegotiationState(Guid.NewGuid(), negotiationRequest.InitiatorId, negotiationRequest.ReceiverId, new List<Card>(), new List<string>());
                 return TypedResults.Ok(response);
             }
             return TypedResults.NotFound();
@@ -212,7 +213,7 @@ public static class GamePlayingEndpoints
                 {
                     NegotiationState negotiationState = CreateFinalnegotiationState(status);
                     negotiationService.EndNegotiation(negotiationState);
-                    game.EndTrading(request.NegotiationId);
+                    game.EndTrading();
                 }
                 return TypedResults.Ok<ResultOfferRequest>(status);
         })
@@ -228,7 +229,7 @@ public static class GamePlayingEndpoints
 
     private static NegotiationState CreateFinalnegotiationState(ResultOfferRequest status)
     {
-        return new NegotiationState(status.NegotiationId, status.InitiatorId, status.ReceiverId, status.CardsExchanged, status.CardsReceived)
+        return new NegotiationState(status.NegotiationId, status.InitiatorId, status.ReceiverId, status.CardsOffered, status.CardsReceived.Select(card => card.Type).ToList())
         {
             OfferAccepted = status.OfferStatus == OfferStatus.Accepted,
             IsActive = false
