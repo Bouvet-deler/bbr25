@@ -67,7 +67,7 @@ public class NegotiationServiceTests
 
         // Assert
         Assert.Equal(OfferStatus.Accepted, result.OfferStatus);
-        Assert.Equal(negotiation.CardOffered, result.CardsOffered);
+        Assert.Equal(negotiation.CardOffered, result.CardsGiven);
         //ToDo: Need to check for real cards, not only type
         //Assert.Equal(negotiation.CardWanted, result.CardsReceived);
     }

@@ -1,13 +1,14 @@
 using Negotiator;
 using SharedModels;
+using Negotiator.Models;
 
 namespace BoardGameServer.Application;
 
 public class Game : IPlayerActions, IRegisterActions
 {
+    private NegotiationState _negotiationState;
 
     public List<Player> Players;
-
     public State CurrentState;
 
     // Er null om spillet ikke er i gang
@@ -22,9 +23,10 @@ public class Game : IPlayerActions, IRegisterActions
     public Stack<Card> Deck;
     public Stack<Card> Discard;
     public Random random = new Random();
+    
 
     public List<NegotiationRequest> TradingArea;
-    private readonly INegotiationService negotiationService;
+    private readonly INegotiationService _negotiationService;
 
     public Game(INegotiationService negotiationService)
     {
@@ -33,7 +35,14 @@ public class Game : IPlayerActions, IRegisterActions
         Discard = new Stack<Card>();
         Deck = new Stack<Card>();
         TradingArea = new List<NegotiationRequest>();
-        this.negotiationService = negotiationService;
+        _negotiationService = negotiationService;
+        _negotiationService.OnNegotiationCompleted += NegotiationCompletedHandler;
+    }
+
+    private void NegotiationCompletedHandler(object? sender, NegotiationState state)
+    {
+        //ToDo: End negotiation
+        throw new NotImplementedException();
     }
 
     public Guid Join(string name)
@@ -168,18 +177,24 @@ public class Game : IPlayerActions, IRegisterActions
             default:
                 throw new Exception($"Valideringen er ikke fullstendig. {CurrentPhase} and {CurrentPlayer}");
         }
-
     }
 
-    public void OfferTrade(NegotiationRequest request)
+    public NegotiationState StartNegotiation(NegotiationRequest request)
     {
+        //ToDo: Check this TradingArea.Add - does it work with NegotiationRequest object?
         TradingArea.Add(request);
+        _negotiationState = _negotiationService.StartNegotiation(request);        
+        var timer = new System.Timers.Timer(120000); // 2 minutes in milliseconds
+        timer.Elapsed += (sender, e) => EndNegotiation(_negotiationState);
+        timer.AutoReset = false;
+        timer.Start();
+        return _negotiationState;
     }
 
-    public void AcceptTrade(Player player, Guid offerId, List<Guid> trade)
+    public void AcceptTrade(ResultOfferRequest tradeResult)
     {
         //Finner det kompatible budet i trading acrea
-        var offeredTrade = TradingArea.Where(offer => offer.NegotiationId == offerId).First();
+        var offeredTrade = TradingArea.Where(offer => offer.NegotiationId == tradeResult.NegotiationId).First();
         TradingArea.Remove(offeredTrade);
         Queue<Card> currentPlayerHand = CurrentPlayer.Hand;
         Queue<Card> currentPlayerNewHand = new Queue<Card>();
@@ -227,8 +242,9 @@ public class Game : IPlayerActions, IRegisterActions
 
     }
 
-    public void EndTrading()
+    public void EndTrading(Guid negotiationId)
     {
+        //Just clear the trading area or set state of negotiation to inactive using ID?
         TradingArea.Clear();
         switch (CurrentPhase)
         {
@@ -374,6 +390,12 @@ public class Game : IPlayerActions, IRegisterActions
     public void HandleGameEnd()
     {
         CurrentState = State.GameDone;
+    }
+
+    private void EndNegotiation(NegotiationState negotiationState)
+    {
+        _negotiationService.EndNegotiation(negotiationState);
+        EndTrading(negotiationState.Id);
     }
 
     public async Task<ResultOfferRequest> Negotiate(ResponseToOfferRequest request)
