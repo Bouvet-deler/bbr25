@@ -4,40 +4,14 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using SharedModels;
-using Negotiator;
-using FakeItEasy;
-using Negotiator.Models;
 namespace BoardGameServer.Tests.UnitTests
 {
     public class StateFlowTests
     {
-        private readonly INegotiationService _negotiationService;
-        private readonly NegotiationRequest _negotiationRequest;
-        private readonly NegotiationState _negotiationState;
-
-        public StateFlowTests()
-        {
-            _negotiationService = A.Fake<INegotiationService>();
-            _negotiationRequest = new NegotiationRequest(
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                [Card.ChiliBean()],
-                [Card.BlackEyedBean()]
-            );
-            _negotiationState = new NegotiationState(
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                [Card.ChiliBean()],
-                [Card.BlackEyedBean()]
-            );
-        }
-
         [Fact]
         public void PlantWhenInPlantingPhaseTakesYouToPlantingOptional()
         {
-            Game game = new Game(_negotiationService);
+            Game game = new Game();
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -50,7 +24,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void PlantWhenInPlantingOptionalTakesYouToTrading()
         {
-            Game game = new Game(_negotiationService);
+            Game game = new Game();
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -64,7 +38,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void EndPlantingInPlantingOptionalTakesYouToTrading()
         {
-            Game game = new Game(_negotiationService);
+            Game game = new Game();
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -78,14 +52,14 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void EndTradingInPlantingOptionalTakesYouToTradePlanting()
         {
-            Game game = new Game(_negotiationService);
+            Game game = new Game();
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
             game.CurrentPhase = Phase.Trading;
 
 
-            game.EndTrading(_negotiationState);
+            game.EndTrading();
             Assert.True(game.CurrentPhase == Phase.TradePlanting);
         }
 
@@ -94,7 +68,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void EndPlantingInPlantingTakesYouToTrading()
         {
-            Game game = new Game(_negotiationService);
+            Game game = new Game();
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -109,7 +83,7 @@ namespace BoardGameServer.Tests.UnitTests
         [Fact]
         public void PlantTradeFinalCallMakesItTheNextPlayersTurn()
         {
-            Game game = new Game(_negotiationService);
+            Game game = new Game();
             game.Join("Benny");
             game.Join("Benny");
             game.StartGame();
@@ -117,7 +91,7 @@ namespace BoardGameServer.Tests.UnitTests
             Player p1 = game.Players.First();
             Player p2 = game.Players.Last();
             Card card = Card.ChiliBean();
-            p1.TradedCards.Add(card);
+            p1.TradedCards.Add(card); 
             Guid field1 = p1.Fields.Keys.First();
             Guid field2 = p2.Fields.Keys.First();
 
@@ -126,9 +100,9 @@ namespace BoardGameServer.Tests.UnitTests
             Assert.True(game.CurrentPhase == Phase.Planting);
             Assert.True(game.CurrentPlayer == p2);
 
-            p2.TradedCards.Add(card);
+            p2.TradedCards.Add(card); 
             game.CurrentPhase = Phase.TradePlanting;
-            game.PlantTrade(p2, card, field2);
+            game.PlantTrade(p2,card, field2);
             Assert.True(game.CurrentPhase == Phase.Planting);
             Assert.True(game.CurrentPlayer == p1);
         }
@@ -137,7 +111,7 @@ namespace BoardGameServer.Tests.UnitTests
         public void GameRoundTwoPlayers_PlantInFirstField()
         {
             int numCards = 104;
-            Game game = new Game(_negotiationService);
+            Game game = new Game();
             game.Join("Benny");
             game.Join("Bjørn");
             game.StartGame();
@@ -145,18 +119,18 @@ namespace BoardGameServer.Tests.UnitTests
             Player p2 = game.Players[1];
             Assert.True(p1.StartingPlayer);
             numCards -= 10; // 5 per spiller
-
+            
             Guid fieldP1 = p1.Fields.Keys.First();
             game.Plant(fieldP1);
             game.EndPlanting();
-            game.EndTrading(_negotiationState);
+            game.EndTrading();
             numCards -= 2; // 2 avdekkes
             Assert.True(game.Deck.Count() == numCards);
             while (p1.DrawnCards.Any())
             {
                 var card = p1.DrawnCards.First();
                 game.PlantTrade(p1, card, fieldP1);
-
+                            
             }
             numCards -= 3; // 3 trekkes av spiller
             Assert.True(game.Deck.Count() == numCards);
@@ -165,20 +139,20 @@ namespace BoardGameServer.Tests.UnitTests
             Guid fieldP2 = p2.Fields.Keys.First();
             game.Plant(fieldP2);
             game.Plant(fieldP2);
-            List<Card> cardsOffered = new List<Card>() { p2.DrawnCards.First() };
+            List<Card> offer = new List<Card>() {p2.DrawnCards.First()};
             List<Card> handList = p1.Hand.ToList();
-            List<Card> CardsRequested = [
+            List<Card> price = new List<Card>() {
                 handList[0],
                 handList[1],
                 handList[2],
                 handList[3]
-            ];
-            Offer trade = new Offer(cardsOffered, CardsRequested, Guid.NewGuid());
-            var guids = cardsOffered.Select(o => o.Type).ToList();
+            };
+            Offer trade = new Offer(offer, price.Select(p=>p.Type).ToList());
+            var guids = offer.Select(o=>o.Type).ToList();
             Assert.True(game.CurrentPlayer == p2);
-            game.OfferTrade(_negotiationRequest);
-            game.AcceptTrade(p1, trade.Id, cardsOffered, CardsRequested);
-            game.EndTrading(_negotiationState);
+            game.OfferTrade(trade);
+            game.AcceptTrade(p1, trade.Id, price.Select(s=>s.Id).ToList());
+            game.EndTrading();
             while (p1.DrawnCards.Any())
             {
                 var card = p1.DrawnCards.First();
@@ -207,7 +181,7 @@ namespace BoardGameServer.Tests.UnitTests
         public void GameRoundTwoPlayers_HilmarActuallyPlays()
         {
             int numCards = 104;
-            Game game = new Game(_negotiationService);
+            Game game = new Game();
             game.Join("Albert");
             game.Join("Bjørn");
             game.Join("Catrin");
@@ -247,71 +221,59 @@ namespace BoardGameServer.Tests.UnitTests
             Assert.True(albert.DrawnCards.All(c => c.Type == "BlueBean"));
             Assert.True(bjørn.DrawnCards.Count() == 0);
             Assert.True(catrin.DrawnCards.Count() == 0);
+            Offer trade = new Offer(albert.DrawnCards,
+                    new List<string>(){
+                    Card.SoyBean().Type,
+                    });
+            Offer trade2 = new Offer(albert.Hand.Where(c => c.Type == "RedBean").Union(albert.Hand.Where(c => c.Type == "StinkBean")).ToList(),
+                    new List<string>(){
+                    Card.GardenBean().Type
+                    });
+            trade2.OfferedCards.Single(e => e.Type == "StinkBean");
+            trade2.OfferedCards.Single(e => e.Type == "RedBean");
 
-
-            var negotiationRequest = new NegotiationRequest(
-                albert.Id,
-                bjørn.Id,
-                Guid.NewGuid(),
-                albert.DrawnCards,
-                new List<Card>(){
-                    Card.SoyBean()
-                });
-
-            var negotiationRequest2 = new NegotiationRequest(
-                albert.Id,
-                Guid.NewGuid(),
-                Guid.NewGuid(),
-                albert.Hand.Where(c => c.Type == "RedBean").Union(albert.Hand.Where(c => c.Type == "StinkBean")).ToList(),
-                new List<Card> {
-                    Card.GardenBean() }
-                );
-            negotiationRequest2.CardsToExchange.Where(e => e.Type == "StinkBean").ToList();
-            negotiationRequest2.CardsToExchange.Where(e => e.Type == "RedBean").ToList();
-            game.OfferTrade(negotiationRequest);
-            int numTrades = game.TradingArea.Count();
+            game.OfferTrade(trade);
+            int numTrades = game.TradingArea.Count() ;
             Assert.True(numTrades == 1);
-            game.OfferTrade(negotiationRequest2);
+            game.OfferTrade(trade2);
             Assert.True(numTrades + 1 == game.TradingArea.Count());
-            game.AcceptTrade(catrin, negotiationRequest.NegotiationId, catrin.Hand.Where(c => c.Type == "SoyBean").ToList(), new List<Card>());
-            //ToDo: Logic for tradingAres fails. 
-            //Assert.True(game.TradingArea.Count() == 1);
-            game.AcceptTrade(bjørn, negotiationRequest2.NegotiationId, bjørn.Hand.Where(c => c.Type == "GardenBean").ToList(), new List<Card>());
+            game.AcceptTrade(catrin,trade.Id,catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
+            Assert.True(game.TradingArea.Count() == 1);
+            game.AcceptTrade(bjørn,trade2.Id,bjørn.Hand.Where(c=> c.Type == "GardenBean").Select(s=>s.Id).ToList());
 
-            game.EndTrading(_negotiationState);
-            //ToDo: Fiks feiler 
-            //Assert.True(albert.Hand.Count() == 2);
+            game.EndTrading();
+            Assert.True(albert.Hand.Count() == 2);
             Assert.True(albert.DrawnCards.Count() == 0);
-            Assert.True(albert.TradedCards.Where(c => c.Type == "SoyBean").Count() == 1);
-            Assert.True(albert.TradedCards.Where(c => c.Type == "GardenBean").Count() == 1);
+            Assert.True(albert.TradedCards.Where(c=>c.Type == "SoyBean").Count() == 1);
+            Assert.True(albert.TradedCards.Where(c=>c.Type == "GardenBean").Count() == 1);
             Assert.True(albert.TradedCards.Count() == 2);
 
             Assert.True(bjørn.Hand.Count() == 4);
-            Assert.True(bjørn.TradedCards.Where(c => c.Type == "RedBean").Count() == 1);
-            Assert.True(bjørn.TradedCards.Where(c => c.Type == "StinkBean").Count() == 1);
+            Assert.True(bjørn.TradedCards.Where(c=>c.Type == "RedBean").Count() == 1);
+            Assert.True(bjørn.TradedCards.Where(c=>c.Type == "StinkBean").Count() == 1);
             Assert.True(bjørn.TradedCards.Count() == 2);
 
             Assert.True(catrin.Hand.Count() == 4);
             Assert.True(catrin.TradedCards.Count() == 2);
-            Assert.True(catrin.TradedCards.Where(c => c.Type == "BlueBean").Count() == 2);
-            game.PlantTrade(catrin, catrin.TradedCards.First(), catrinFields[1]);
-            game.PlantTrade(catrin, catrin.TradedCards.First(), catrinFields[1]);
+            Assert.True(catrin.TradedCards.Where(c=>c.Type == "BlueBean").Count() == 2);
+            game.PlantTrade(catrin,catrin.TradedCards.First(), catrinFields[1]);
+            game.PlantTrade(catrin,catrin.TradedCards.First(), catrinFields[1]);
             Assert.True(catrin.TradedCards.Count() == 0);
             Assert.True(catrin.Fields[catrinFields[1]].Count() == 2);
 
             var bean = bjørn.TradedCards.First();
-            game.PlantTrade(bjørn, bean, bjørnFields[0]);
+            game.PlantTrade(bjørn,bean, bjørnFields[0]);
             Assert.True(bjørn.Fields[bjørnFields[0]].First().Type == "StinkBean");
 
             bean = bjørn.TradedCards.First();
-            game.PlantTrade(albert, albert.TradedCards.First(), albertFields[1]);
-            game.PlantTrade(albert, albert.TradedCards.First(), albertFields[0]);
+            game.PlantTrade(albert,albert.TradedCards.First(), albertFields[1]);
+            game.PlantTrade(albert,albert.TradedCards.First(), albertFields[0]);
             Assert.True(albert.Fields[albertFields[0]].Count() == 2);
             Assert.True(albert.Fields[albertFields[0]].First().Type == "GardenBean");
             Assert.True(albert.Fields[albertFields[0]].Last().Type == "GardenBean");
 
             int cards = albert.Hand.Count();
-            game.PlantTrade(bjørn, bjørn.TradedCards.First(), bjørnFields[1]);
+            game.PlantTrade(bjørn,bjørn.TradedCards.First(), bjørnFields[1]);
             Assert.True(albert.Hand.Count() == cards + 3);
             Assert.True(bjørn.TradedCards.Count() == 0);
             Assert.True(game.CurrentPhase == Phase.Planting);
@@ -320,59 +282,58 @@ namespace BoardGameServer.Tests.UnitTests
             game.Plant(bjørnFields[1]);
             game.Plant(bjørnFields[0]);
 
-            Offer offer = new Offer(
-            bjørn.DrawnCards.Where(c => c.Type == "SoyBean").ToList(),
-                 new List<Card>() { Card.ChiliBean(), Card.StinkBean() },
-                 Guid.NewGuid());
-            game.OfferTrade(_negotiationRequest);
+                   Offer offer =new Offer(
+                   bjørn.DrawnCards.Where(c=>c.Type =="SoyBean").ToList(),
+                   new List<string>(){"ChiliBean", "StinkBean"});
+            game.OfferTrade(offer);
 
-            game.AcceptTrade(albert, offer.Id,
-                   albert.Hand.Where(c => c.Type == "ChiliBean" || c.Type == "StinkBean").ToList(), new List<Card>());
+            game.AcceptTrade(albert,offer.Id, 
+                   albert.Hand.Where(c=>c.Type =="ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
 
-            game.EndTrading(_negotiationState);
+            game.EndTrading();
             Assert.True(bjørn.DrawnCards.Count() == 1);
             Assert.True(bjørn.TradedCards.Count() == 2);
             Assert.True(albert.TradedCards.Count() == 1);
 
             game.PlantTrade(bjørn,
-                    bjørn.TradedCards.Where(c =>
+                    bjørn.TradedCards.Where(c=>
                         c.Type == "StinkBean")
                     .First(), bjørnFields[0]);
             Assert.True(bjørn.Fields[bjørnFields[0]].Count() == 3);
 
-            game.HarvestField(bjørn, bjørnFields[0]);
+            game.HarvestField(bjørn,bjørnFields[0]);
             Assert.True(bjørn.Fields[bjørnFields[0]].Count() == 0);
             Assert.True(bjørn.Coins == 1);
             Assert.True(game.Discard.Count() == 2);
 
-            game.PlantTrade(bjørn, bjørn.TradedCards.First(), bjørnFields[0]);
-            game.PlantTrade(bjørn, bjørn.DrawnCards.First(), bjørnFields[0]);
-            game.PlantTrade(albert, albert.TradedCards.First(), albertFields[1]);
+            game.PlantTrade(bjørn,bjørn.TradedCards.First(), bjørnFields[0]);
+            game.PlantTrade(bjørn,bjørn.DrawnCards.First(), bjørnFields[0]);
+            game.PlantTrade(albert,albert.TradedCards.First(), albertFields[1]);
             Assert.True(bjørn.Hand.Count() == 5);
             Assert.True(game.CurrentPlayer == catrin);
 
-            Assert.True(game.Deck.Count() + game.Discard.Count() +
+            Assert.True(game.Deck.Count() + game.Discard.Count()+
                     albert.Hand.Count() +
                     bjørn.Hand.Count() +
-                    catrin.Hand.Count() + albert.Fields[albertFields[0]].Count() + albert.Fields[albertFields[1]].Count() +
+                    catrin.Hand.Count() +                    albert.Fields[albertFields[0]].Count() + albert.Fields[albertFields[1]].Count() +
                     bjørn.Fields[bjørnFields[0]].Count() + bjørn.Fields[bjørnFields[1]].Count() +
                     catrin.Fields[catrinFields[0]].Count() + catrin.Fields[catrinFields[1]].Count() == 103);
             game.Plant(catrinFields[1]);
             game.Plant(catrinFields[0]);
-            game.EndTrading(_negotiationState);
-            game.PlantTrade(catrin,
-                   catrin.DrawnCards.Where(c => c.Type == "BlueBean").First(), catrinFields[1]);
-            game.HarvestField(catrin, catrinFields[1]);
-            foreach (var card in catrin.Hand)
+            game.EndTrading();
+            game.PlantTrade(catrin, 
+                   catrin.DrawnCards.Where(c=>c.Type =="BlueBean").First(),catrinFields[1]);
+            game.HarvestField(catrin,catrinFields[1]);
+            foreach(var card in catrin.Hand)
             {
                 Console.WriteLine(card.Type);
             }
-            game.PlantTrade(catrin,
-                   catrin.DrawnCards.Where(c => c.Type == "BlackEyedBean").First(), catrinFields[1]);
-            Assert.True(game.Deck.Count() + game.Discard.Count() +
+            game.PlantTrade(catrin, 
+                   catrin.DrawnCards.Where(c=>c.Type =="BlackEyedBean").First(),catrinFields[1]);
+            Assert.True(game.Deck.Count() + game.Discard.Count()+
                     albert.Hand.Count() +
                     bjørn.Hand.Count() +
-                    catrin.Hand.Count() + albert.Fields[albertFields[0]].Count() + albert.Fields[albertFields[1]].Count() +
+                    catrin.Hand.Count() +                    albert.Fields[albertFields[0]].Count() + albert.Fields[albertFields[1]].Count() +
                     bjørn.Fields[bjørnFields[0]].Count() + bjørn.Fields[bjørnFields[1]].Count() +
                     catrin.Fields[catrinFields[0]].Count() + catrin.Fields[catrinFields[1]].Count() == 102);
             //Nå er det alberts tur
