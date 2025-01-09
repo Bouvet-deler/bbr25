@@ -152,21 +152,25 @@ public static class GamePlayingEndpoints
         });
 
 
-        group.MapPost("/start-negotiation", static async Task<Results<Ok<NegotiationState>, NotFound>> ([FromBody] NegotiationRequest negotiationRequest, [FromServices] GameService gameService, [FromServices] MessageValidator messageValidator) =>
+        group.MapPost("/start-negotiation", static async Task<Results<Ok<NegotiationState>, BadRequest<ErrorResponse>>> ([FromBody] NegotiationRequest negotiationRequest, [FromServices] GameService gameService, [FromServices] MessageValidator messageValidator) =>
         {
             NegotiationState response;
             var game = gameService.GetCurrentGame();
 
             //Are the game in the right state?
+            if (game.CurrentPhase != Phase.Trading)
+            {
+                return TypedResults.BadRequest(new ErrorResponse("Already trading"));
+            }
+
             //Server needs to validate the message from the player.
             if (messageValidator.Validate(negotiationRequest))
             {
-                //ToDo: The id of the response needs to be stored in the game state for others to query it.
-                game.OfferTrade(negotiationRequest);
-                response = new NegotiationState(Guid.NewGuid(), negotiationRequest.InitiatorId, negotiationRequest.ReceiverId, new List<Card>(), new List<string>());
-                return TypedResults.Ok(response);
+                //ToDo: The id of the response needs to be stored in the game state for the current player to query it.
+                NegotiationState result = game.StartNegotiation(negotiationRequest);
+                return TypedResults.Ok(result);
             }
-            return TypedResults.NotFound();
+            return TypedResults.BadRequest(new ErrorResponse("Not a valid negotiation request"));
         })
         .WithOpenApi(op =>
         {
@@ -175,13 +179,13 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapGet("/get-negotiation-status/{id:guid}", static async Task<Results<Ok<NegotiationState>, NotFound>> ([FromServices] INegotiationService negotiationService, Guid id) =>
+        group.MapGet("/get-negotiation-status/{id:guid}", static async Task<Results<Ok<NegotiationState>, NotFound<ErrorResponse>>> ([FromServices] INegotiationService negotiationService, Guid id) =>
         {
             //Any negotiatins ongoing with id == id?
             var status = negotiationService.GetNegotiationStatus(id);
             if (status == null)
             {
-                return TypedResults.NotFound();
+                return TypedResults.NotFound(new ErrorResponse("Negotiation not found"));
             }
 
             return TypedResults.Ok(status);
@@ -193,13 +197,13 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/negotiation", static async Task<Results<Ok<ResultOfferRequest>, NotFound>> (ResponseToOfferRequest request, [FromServices] INegotiationService negotiationService, [FromServices] GameService gameService, [FromServices] MessageValidator messageValidator) =>
+        group.MapPost("/negotiation", static async Task<Results<Ok<ResultOfferRequest>, BadRequest<ErrorResponse>>> (ResponseToOfferRequest request, [FromServices] INegotiationService negotiationService, [FromServices] GameService gameService, [FromServices] MessageValidator messageValidator) =>
         {
             var game = gameService.GetCurrentGame();
             //Valid card offered?
             if (messageValidator.Validate(request))
             {
-                return TypedResults.NotFound();
+                return TypedResults.BadRequest(new ErrorResponse("Negotiation request not valid"));
             }
 
                 //var status = await negotiationService.RespondToNegotiationAsync(request);
@@ -207,7 +211,7 @@ public static class GamePlayingEndpoints
                 var status = await game.Negotiate(request);
                 if (status == null)
                 {
-                    return TypedResults.NotFound();
+                    return TypedResults.BadRequest(new ErrorResponse("Negotiation not found"));
                 }
                 if (status.OfferStatus == OfferStatus.Accepted)
                 {
@@ -229,7 +233,7 @@ public static class GamePlayingEndpoints
 
     private static NegotiationState CreateFinalnegotiationState(ResultOfferRequest status)
     {
-        return new NegotiationState(status.NegotiationId, status.InitiatorId, status.ReceiverId, status.CardsOffered, status.CardsReceived.Select(card => card.Type).ToList())
+        return new NegotiationState(status.NegotiationId, status.InitiatorId, status.ReceiverId, status.CardsGiven, status.CardsReceived.Select(card => card.Type).ToList())
         {
             OfferAccepted = status.OfferStatus == OfferStatus.Accepted,
             IsActive = false

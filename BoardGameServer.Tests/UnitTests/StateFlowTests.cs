@@ -161,7 +161,7 @@ public class StateFlowTests
 
         var guids = offer.Select(o=>o.Type).ToList();
         Assert.True(game.CurrentPlayer == p2);
-        game.OfferTrade(trade);
+        game.StartNegotiation(trade);
         game.AcceptTrade(p1, trade.NegotiationId, price.Select(s=>s.Id).ToList());
         game.EndTrading();
         while (p1.DrawnCards.Any())
@@ -242,10 +242,10 @@ public class StateFlowTests
         trade2.OfferedCards.Single(e => e.Type == "StinkBean");
         trade2.OfferedCards.Single(e => e.Type == "RedBean");
 
-        game.OfferTrade(trade1);
+        game.StartNegotiation(trade1);
         int numTrades = game.TradingArea.Count() ;
         Assert.True(numTrades == 1);
-        game.OfferTrade(trade2);
+        game.StartNegotiation(trade2);
         Assert.True(numTrades + 1 == game.TradingArea.Count());
         game.AcceptTrade(catrin,trade1.NegotiationId, catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
         Assert.True(game.TradingArea.Count() == 1);
@@ -300,7 +300,7 @@ public class StateFlowTests
             new List<string> { "ChiliBean", "StinkBean" }
         );
 
-        game.OfferTrade(offer);
+        game.StartNegotiation(offer);
 
         game.AcceptTrade(albert,offer.NegotiationId , 
                albert.Hand.Where(c=>c.Type =="ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
