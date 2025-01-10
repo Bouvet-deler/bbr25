@@ -1,16 +1,17 @@
 ﻿using SharedModels;
+using System.Collections.Concurrent;
 
 namespace Negotiator.Tests;
 
 public class NegotiationServiceTests
 {
     private readonly NegotiationService _negotiationService;
-    private readonly NegotiationRequest _request;
+    private readonly Offer _request;
 
     public NegotiationServiceTests()
     {
         _negotiationService = new NegotiationService();
-        _request = new NegotiationRequest(
+        _request = new Offer(
             InitiatorId:Guid.NewGuid(),   
             ReceiverId:new Guid(),
             NegotiationId : Guid.NewGuid(),
@@ -39,13 +40,15 @@ public class NegotiationServiceTests
     {
         // Arrange
         var negotiation = _negotiationService.StartNegotiation(_request);
+        var negotiationId = negotiation.Id;
+        var negotiations = new ConcurrentDictionary<Guid, Offer>();
 
         // Act
-        var result = _negotiationService.GetNegotiationStatus(negotiation.Id);
+        var (negotiationState, _) = _negotiationService.GetNegotiationStatus();
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(negotiation.Id, result.Id);
+        Assert.NotNull(negotiationState);
+        Assert.Equal(negotiationId, negotiationState.Id);
     }
 
     [Fact]
@@ -58,15 +61,15 @@ public class NegotiationServiceTests
         var responseRequest = new ResponseToOfferRequest(
             _request.InitiatorId,
             _request.ReceiverId,
-            negotiation.Id, // NegotiationId
-            true // OfferAccepted
+            negotiation.Id,
+            ProposalStatus.Accepted
         );
 
         // Act
-        var result = await _negotiationService.RespondToNegotiationAsync(responseRequest);
+        var result = _negotiationService.RespondToNegotiation(responseRequest);
 
         // Assert
-        Assert.Equal(OfferStatus.Accepted, result.OfferStatus);
+        Assert.Equal(ProposalStatus.Accepted, result.OfferStatus);
         Assert.Equal(negotiation.CardOffered, result.CardsGiven);
         //ToDo: Need to check for real cards, not only type
         //Assert.Equal(negotiation.CardWanted, result.CardsReceived);
@@ -83,14 +86,14 @@ public class NegotiationServiceTests
             _request.InitiatorId,
             _request.ReceiverId,
             negotiation.Id, // NegotiationId
-            false // OfferAccepted
+            ProposalStatus.Declined // OfferAccepted
         );
 
         // Act
-        var result = await _negotiationService.RespondToNegotiationAsync(responseRequest);
+        var result = _negotiationService.RespondToNegotiation(responseRequest);
 
         // Assert
-        Assert.Equal(OfferStatus.Declined, result.OfferStatus);
+        Assert.Equal(ProposalStatus.Declined, result.OfferStatus);
         //ToDo: Need to check for real cards, not only type
         //Assert.Equal(negotiation.CardWanted, result.CardsOffered);
         Assert.Equal(negotiation.CardOffered, result.CardsReceived);

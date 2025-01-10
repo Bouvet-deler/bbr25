@@ -234,8 +234,8 @@ public class Game : IPlayerActions, IRegisterActions
 
     public void EndTrading()
     {
-        //Just clear the trading area or set state of negotiation to inactive using ID?
-        NegotiationService.Negotiations.Clear();
+        //ToDo: This for NegotiationState object is needed for the timer. Can be removed if we don't use timer. 
+        EndNegotiation(new NegotiationState(CurrentPlayer.Id, Guid.Empty, Guid.NewGuid(), new List<Card>(), new List<string>()));
         switch (CurrentPhase)
         {
             case Phase.Trading:
