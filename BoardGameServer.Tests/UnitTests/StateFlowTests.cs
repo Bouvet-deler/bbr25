@@ -14,13 +14,13 @@ public class StateFlowTests
 {
     private readonly INegotiationService _negotiationService;
 
-            private readonly IScoreRepository _scoreRepository ;
-            private readonly EloCalculator _eloCalculator ;
+    private readonly IScoreRepository _scoreRepository ;
+    private readonly EloCalculator _eloCalculator ;
 
-            public StateFlowTests()
-            {
-                _scoreRepository = new ScoreRepository();
-                _eloCalculator = new EloCalculator(_scoreRepository);
+    public StateFlowTests()
+    {
+        _scoreRepository = new ScoreRepository();
+        _eloCalculator = new EloCalculator(_scoreRepository);
         _negotiationService = A.Fake<INegotiationService>();
     }
 
@@ -135,7 +135,7 @@ public class StateFlowTests
         Player p2 = game.Players[1];
         Assert.True(p1.StartingPlayer);
         numCards -= 10; // 5 per spiller
-        
+
         Guid fieldP1 = p1.Fields.Keys.First();
         game.Plant(fieldP1);
         game.EndPlanting();
@@ -146,7 +146,7 @@ public class StateFlowTests
         {
             var card = p1.DrawnCards.First();
             game.PlantTrade(p1, card, fieldP1);
-                        
+
         }
         numCards -= 3; // 3 trekkes av spiller
         Assert.True(game.Deck.Count() == numCards);
@@ -167,8 +167,8 @@ public class StateFlowTests
 
         var guids = offer.Select(o=>o.Type).ToList();
         Assert.True(game.CurrentPlayer == p2);
-        game.OfferTrade(trade);
-        game.AcceptTrade(p1, trade.NegotiationId, price.Select(s=>s.Id).ToList());
+         _negotiationService.StartNegotiation(trade);
+        game.AcceptTrade(p1, trade.OfferedCards.Select(card=>card.Id).ToList(), price.Select(s=>s.Id).ToList());
         game.EndTrading();
         while (p1.DrawnCards.Any())
         {
@@ -197,8 +197,9 @@ public class StateFlowTests
     [Fact]
     public void GameRoundTwoPlayers_HilmarActuallyPlays()
     {
+        var negotiationService = new NegotiationService();
         int numCards = 104;
-        Game game = new Game(_negotiationService,_eloCalculator);
+        Game game = new Game(negotiationService,_eloCalculator);
         game.Join("Albert");
         game.Join("Bjørn");
         game.Join("Catrin");
@@ -243,19 +244,15 @@ public class StateFlowTests
 
         var trade1 = new NegotiationRequest(albert.Id, bjørn.Id, Guid.NewGuid(), albert.DrawnCards, new List<string>() { Card.SoyBean().Type });
         var trade2 = new NegotiationRequest(albert.Id, bjørn.Id, Guid.NewGuid(),
-            albert.Hand.Where(c => c.Type == "RedBean").Union(albert.Hand.Where(c => c.Type == "StinkBean")).ToList(),
-            new List<string>() { Card.GardenBean().Type });
+                albert.Hand.Where(c => c.Type == "RedBean").Union(albert.Hand.Where(c => c.Type == "StinkBean")).ToList(),
+                new List<string>() { Card.GardenBean().Type });
         trade2.OfferedCards.Single(e => e.Type == "StinkBean");
         trade2.OfferedCards.Single(e => e.Type == "RedBean");
 
-        game.OfferTrade(trade1);
-        int numTrades = game.TradingArea.Count() ;
-        Assert.True(numTrades == 1);
-        game.OfferTrade(trade2);
-        Assert.True(numTrades + 1 == game.TradingArea.Count());
-        game.AcceptTrade(catrin,trade1.NegotiationId, catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
-        Assert.True(game.TradingArea.Count() == 1);
-        game.AcceptTrade(bjørn,trade2.NegotiationId, bjørn.Hand.Where(c=> c.Type == "GardenBean").Select(s=>s.Id).ToList());
+        _negotiationService.StartNegotiation(trade1);
+        _negotiationService.StartNegotiation(trade2);
+        game.AcceptTrade(catrin,trade1.OfferedCards.Select(card=>card.Id).ToList(), catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
+        game.AcceptTrade(bjørn,trade2.OfferedCards.Select(card=>card.Id).ToList(), bjørn.Hand.Where(c=> c.Type == "GardenBean").Select(s=>s.Id).ToList());
 
         game.EndTrading();
         Assert.True(albert.Hand.Count() == 2);
@@ -299,17 +296,17 @@ public class StateFlowTests
         game.Plant(bjørnFields[0]);
 
         var offer = new NegotiationRequest(
-            bjørn.Id,
-            albert.Id,
-            Guid.NewGuid(),
-            bjørn.DrawnCards.Where(c => c.Type == "SoyBean").ToList(),
-            new List<string> { "ChiliBean", "StinkBean" }
-        );
+                bjørn.Id,
+                albert.Id,
+                Guid.NewGuid(),
+                bjørn.DrawnCards.Where(c => c.Type == "SoyBean").ToList(),
+                new List<string> { "ChiliBean", "StinkBean" }
+                );
 
-        game.OfferTrade(offer);
+        _negotiationService.StartNegotiation(offer);
 
-        game.AcceptTrade(albert,offer.NegotiationId , 
-               albert.Hand.Where(c=>c.Type =="ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
+        game.AcceptTrade(albert,offer.OfferedCards.Select(card=>card.Id).ToList() , 
+                albert.Hand.Where(c => c.Type == "ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
 
         game.EndTrading();
         Assert.True(bjørn.DrawnCards.Count() == 1);
@@ -343,14 +340,14 @@ public class StateFlowTests
         game.Plant(catrinFields[0]);
         game.EndTrading();
         game.PlantTrade(catrin, 
-               catrin.DrawnCards.Where(c=>c.Type =="BlueBean").First(),catrinFields[1]);
+                catrin.DrawnCards.Where(c=>c.Type =="BlueBean").First(),catrinFields[1]);
         game.HarvestField(catrin,catrinFields[1]);
         foreach(var card in catrin.Hand)
         {
             Console.WriteLine(card.Type);
         }
         game.PlantTrade(catrin, 
-               catrin.DrawnCards.Where(c=>c.Type =="BlackEyedBean").First(),catrinFields[1]);
+                catrin.DrawnCards.Where(c=>c.Type =="BlackEyedBean").First(),catrinFields[1]);
         Assert.True(game.Deck.Count() + game.Discard.Count()+
                 albert.Hand.Count() +
                 bjørn.Hand.Count() +

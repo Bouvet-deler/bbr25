@@ -1,14 +1,15 @@
 using ScoringService;
 using Negotiator;
 using SharedModels;
+using Negotiator.Models;
 
 namespace BoardGameServer.Application;
 
 public class Game : IPlayerActions, IRegisterActions
 {
+    private NegotiationState _negotiationState;
 
     public List<Player> Players;
-
     public State CurrentState;
 
     // Er null om spillet ikke er i gang
@@ -25,8 +26,7 @@ public class Game : IPlayerActions, IRegisterActions
     public Random random = new Random();
     private readonly EloCalculator _eloCalculator;
 
-    public List<NegotiationRequest> TradingArea;
-    private readonly INegotiationService negotiationService;
+    public readonly INegotiationService NegotiationService;
 
     public Game(INegotiationService negotiationService, EloCalculator eloCalculator)
     {
@@ -34,9 +34,9 @@ public class Game : IPlayerActions, IRegisterActions
         Players = new List<Player>();
         Discard = new Stack<Card>();
         Deck = new Stack<Card>();
-        TradingArea = new List<NegotiationRequest>();
-        this.negotiationService = negotiationService;
+
         _eloCalculator = eloCalculator;
+        NegotiationService = negotiationService;
     }
 
     //TODO registrer spillerene i eloRatingen
@@ -129,6 +129,12 @@ public class Game : IPlayerActions, IRegisterActions
         CurrentState = State.Playing;
         CurrentPhase = Phase.Planting;
         CurrentPlayer = Players.Single(p=> p.StartingPlayer);
+        Player p = CurrentPlayer;
+        while (p.NextPlayer != CurrentPlayer)
+        {
+            p.NextPlayer.PositionFromStarting = p.PositionFromStarting + 1;
+            p = p.NextPlayer;
+        }
     }
 
     public void Plant(Guid field)
@@ -172,28 +178,23 @@ public class Game : IPlayerActions, IRegisterActions
             default:
                 throw new Exception($"Valideringen er ikke fullstendig. {CurrentPhase} and {CurrentPlayer}");
         }
-
     }
 
-    public void OfferTrade(NegotiationRequest request)
-    {
-        TradingArea.Add(request);
-    }
 
-    public void AcceptTrade(Player player, Guid offerId, List<Guid> trade)
+    public void AcceptTrade(Player player, List<Guid> offeredCards, List<Guid> recievedCards)
     {
         //Finner det kompatible budet i trading acrea
-        var offeredTrade = TradingArea.Where(offer => offer.NegotiationId == offerId).First();
-        TradingArea.Remove(offeredTrade);
         Queue<Card> currentPlayerHand = CurrentPlayer.Hand;
         Queue<Card> currentPlayerNewHand = new Queue<Card>();
+
         foreach (var item in currentPlayerHand)
         {
             //Fjerner alle kort som ble byttet bort
-            if (!offeredTrade.OfferedCards.Any(card =>card.Id == item.Id))
+            if (!offeredCards.Any(card =>card == item.Id))
             {
                 currentPlayerNewHand.Enqueue(item);
-            }else
+            }
+            else
             {
                 player.TradedCards.Add(item);
             }
@@ -203,7 +204,7 @@ public class Game : IPlayerActions, IRegisterActions
         foreach (var item in drawnCards)
         {
             //Fjerner alle kort som ble byttet bort
-            if (offeredTrade.OfferedCards.Contains(item))
+            if (offeredCards.Any(card => card == item.Id))
             {
                 player.TradedCards.Add(item);
                 drawnCardsRemove.Add(item);
@@ -218,7 +219,7 @@ public class Game : IPlayerActions, IRegisterActions
         foreach (var item in playerHand)
         {
             //Fjerner alle kort som ble byttet bort
-            if (!trade.Any(card =>card == item.Id))
+            if (!recievedCards.Any(card =>card == item.Id))
             {
                 playerNewHand.Enqueue(item);
             }
@@ -233,7 +234,8 @@ public class Game : IPlayerActions, IRegisterActions
 
     public void EndTrading()
     {
-        TradingArea.Clear();
+        //Just clear the trading area or set state of negotiation to inactive using ID?
+        NegotiationService.Negotiations.Clear();
         switch (CurrentPhase)
         {
             case Phase.Trading:
@@ -296,7 +298,9 @@ public class Game : IPlayerActions, IRegisterActions
             if(CurrentPlayer.Hand.Any())
             {
                 CurrentPhase = Phase.Planting;
-            }else{
+            }
+            else
+            {
                 GoToTradingPhase();
             }
         }
@@ -378,16 +382,18 @@ public class Game : IPlayerActions, IRegisterActions
     public void HandleGameEnd()
     {
         CurrentState = State.GameDone;
-        var players = Players.OrderBy(p=> p.Coins).Select(p=> p.Name).ToList<string>();
+        var players = Players
+            .OrderByDescending(p=> p.Coins)
+            .ThenByDescending(p=>p.PositionFromStarting)
+            .Select(p=> p.Name)
+            .ToList<string>();
+
         _eloCalculator.ScoreGame(players);
     }
 
-    internal class PlayerComparator : IComparer<Player>
+    private void EndNegotiation(NegotiationState negotiationState)
     {
-        public int Compare(Player? x, Player? y)
-        {
-            return x.Coins - y.Coins;
-        }
+        NegotiationService.EndNegotiation(negotiationState);
     }
 
     public async Task<ResultOfferRequest> Negotiate(ResponseToOfferRequest request)

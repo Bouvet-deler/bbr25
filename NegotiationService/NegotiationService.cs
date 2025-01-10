@@ -4,10 +4,21 @@ using System.Collections.Concurrent;
 
 namespace Negotiator;
 
-public class NegotiationService : INegotiationService
+public class NegotiationService : INegotiationService  //ToDo: update interface
 {
-    private readonly ConcurrentDictionary<Guid, NegotiationState> _negotiations = new();
+    public ConcurrentDictionary<Guid, NegotiationState> Negotiations  {get; } = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+    //ToDo: This will not work in a real-world scenario. This is just for testing purposes.
+    //Need to support multiple negotiations at the same time.
+    private Guid _negotiationId = Guid.NewGuid();
+
+    public event EventHandler<NegotiationState>? OnNegotiationCompleted;
+    //public delegate void NegotiationCompletedCallback(NegotiationState state);
+    //public event NegotiationCompletedCallback? OnNegotiationCompleted;
+
+
+    
 
 
     public NegotiationState StartNegotiation(NegotiationRequest request)
@@ -15,7 +26,7 @@ public class NegotiationService : INegotiationService
         var negotiation = new NegotiationState(
             request.InitiatorId,
             request.ReceiverId,
-            Guid.NewGuid(),
+            _negotiationId,
             request.OfferedCards,
             request.CardTypesWanted
         )
@@ -24,13 +35,13 @@ public class NegotiationService : INegotiationService
             IsActive = true
         };
 
-        _negotiations[negotiation.Id] = negotiation;
+        Negotiations[negotiation.Id] = negotiation;
 
         return negotiation;
     }
     public NegotiationState? GetNegotiationStatus(Guid id)
     {
-        return _negotiations.Values.FirstOrDefault(n => n.Id == id);
+        return Negotiations.Values.FirstOrDefault(n => n.Id == id);
     }
 
     public async Task<ResultOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request)
@@ -38,17 +49,21 @@ public class NegotiationService : INegotiationService
         await _semaphore.WaitAsync();
         try
         {
+            //ToDo: Use _negotiationId
             ResultOfferRequest endingOfferRequest = new ResultOfferRequest(request.InitiatorId, request.ReceiverId, request.NegotiationId);
 
-            if (_negotiations.TryGetValue(request.NegotiationId, out var negotiation) && negotiation.IsActive)
+            if (Negotiations.TryGetValue(request.NegotiationId, out var negotiation) && negotiation.IsActive)
             {
                 if (negotiation.OfferAccepted)
                 {
                     //Swap cards
                     endingOfferRequest.OfferStatus = OfferStatus.Accepted;
-                    endingOfferRequest.CardsOffered = negotiation.CardOffered;
+                    endingOfferRequest.CardsGiven = negotiation.CardOffered;
                     //ToDO: Need to swap real cards, not only type
                     //endingOfferRequest.CardsReceived = negotiation.CardWanted;
+
+                    OnNegotiationCompleted?.Invoke(this, negotiation);
+
                     return endingOfferRequest;
                 }
                 if (!negotiation.OfferAccepted)
@@ -61,8 +76,8 @@ public class NegotiationService : INegotiationService
                 }
             }
             endingOfferRequest.OfferStatus = OfferStatus.NotValid;
-            endingOfferRequest.CardsOffered = new List<Card>();
-            endingOfferRequest.CardsReceived =  new List<Card>();
+            endingOfferRequest.CardsGiven = new List<Card>();
+            endingOfferRequest.CardsReceived = new List<Card>();
             return endingOfferRequest;
         }
         finally
@@ -76,7 +91,7 @@ public class NegotiationService : INegotiationService
         if (state is NegotiationState negotiationState)
         {
             var negotiationId = negotiationState.Id;
-            if (_negotiations.TryGetValue(negotiationId, out var negotiation))
+            if (Negotiations.TryGetValue(negotiationId, out var negotiation))
             {
                 negotiation.IsActive = false;
             }

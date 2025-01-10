@@ -8,7 +8,7 @@ public class Player
     public Guid Id; 
 
     //Spiller som skal spille etter denne
-    public Player? NextPlayer = null;
+    public Player NextPlayer;
 
     //Kort som kun skal vises til denne spilleren.
     public Queue<Card> Hand = new Queue<Card>();
@@ -24,6 +24,7 @@ public class Player
 
     //Er spilleren startspiller?
     public bool StartingPlayer;
+    public int PositionFromStarting = 0;
 
     //
     public int Coins = 0;
