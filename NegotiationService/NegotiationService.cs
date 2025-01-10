@@ -1,18 +1,19 @@
 ﻿using Negotiator.Models;
 using SharedModels;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 
 namespace Negotiator;
 
 public class NegotiationService : INegotiationService
 {
-    private readonly ConcurrentDictionary<Guid, NegotiationState> _negotiations = new();
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly ConcurrentDictionary<Guid, Offer> _negotiations = new();
+    private NegotiationState? _negotiationState;
 
 
-    public NegotiationState StartNegotiation(NegotiationRequest request)
+    public NegotiationState StartNegotiation(Offer request)
     {
-        var negotiation = new NegotiationState(
+        _negotiationState = new NegotiationState(
             request.InitiatorId,
             request.ReceiverId,
             Guid.NewGuid(),
@@ -24,60 +25,70 @@ public class NegotiationService : INegotiationService
             IsActive = true
         };
 
-        _negotiations[negotiation.Id] = negotiation;
-
-        return negotiation;
-    }
-    public NegotiationState? GetNegotiationStatus(Guid id)
-    {
-        return _negotiations.Values.FirstOrDefault(n => n.Id == id);
+        return _negotiationState;
     }
 
-    public async Task<ResultOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request)
+    public (NegotiationState? negotiationState, ConcurrentDictionary<Guid, Offer> negotiations) GetNegotiationStatus()
     {
-        await _semaphore.WaitAsync();
-        try
+        //Can be used by both parties to check the status of the negotiation
+        return (_negotiationState, _negotiations);  //ToDo: Refactor to return a DTO
+    }
+
+    public string RegisterOffer(Offer offer)
+    {
+        if (offer == null)
         {
-            ResultOfferRequest endingOfferRequest = new ResultOfferRequest(request.InitiatorId, request.ReceiverId, request.NegotiationId);
+            return "Error: Offer is null";
+        }
 
-            if (_negotiations.TryGetValue(request.NegotiationId, out var negotiation) && negotiation.IsActive)
+        _negotiations.AddOrUpdate(
+            offer.NegotiationId,
+            offer,
+            (key, existingOffer) => offer
+        );
+
+        return "OK";
+    }
+
+    public ResultOfferRequest RespondToNegotiation(ResponseToOfferRequest response)
+    {
+        if (_negotiationState == null || _negotiationState.Id != response.NegotiationId || !_negotiationState.IsActive)
+        {
+            if (response.answer == ProposalStatus.Accepted)
             {
-                if (negotiation.OfferAccepted)
+                return new ResultOfferRequest(response.InitiatorId, response.ReceiverId, response.NegotiationId)
                 {
-                    //Swap cards
-                    endingOfferRequest.OfferStatus = OfferStatus.Accepted;
-                    endingOfferRequest.CardsExchanged = negotiation.CardOffered;
-                    endingOfferRequest.CardsReceived = negotiation.CardWanted;
-                    return endingOfferRequest;
-                }
-                if (!negotiation.OfferAccepted)
-                {
-                    endingOfferRequest.OfferStatus = OfferStatus.Declined;
-                    endingOfferRequest.CardsExchanged = negotiation.CardWanted;
-                    endingOfferRequest.CardsReceived = negotiation.CardOffered;
-                    return endingOfferRequest;
-                }
+                    OfferStatus = ProposalStatus.NotValid,
+                    CardsExchanged = new List<Card>(),
+                    CardsReceived = new List<Card>()
+                };
             }
-            endingOfferRequest.OfferStatus = OfferStatus.NotValid;
-            endingOfferRequest.CardsExchanged = new List<Card>();
-            endingOfferRequest.CardsReceived =  new List<Card>();
-            return endingOfferRequest;
+            return new ResultOfferRequest(response.InitiatorId, response.ReceiverId, response.NegotiationId)
+            {
+                OfferStatus = ProposalStatus.Declined,
+                CardsExchanged = new List<Card>(),
+                CardsReceived = new List<Card>()
+            };
         }
-        finally
+
+        //No active negotiations running
+        return new ResultOfferRequest(response.InitiatorId, response.ReceiverId, response.NegotiationId)
         {
-            _semaphore.Release();
-        }
+            OfferStatus = ProposalStatus.NotValid,
+            CardsExchanged = new List<Card>(),
+            CardsReceived = new List<Card>()
+        };
     }
 
     public void EndNegotiation(object? state)
     {
         if (state is NegotiationState negotiationState)
         {
-            var negotiationId = negotiationState.Id;
-            if (_negotiations.TryGetValue(negotiationId, out var negotiation))
-            {
-                negotiation.IsActive = false;
-            }
+            negotiationState.IsActive = false;  //???
+            _negotiationState = null;
+            _negotiations.Clear();
         }
+
+        //ToDO: Do we need to do return the new state?
     }
 }

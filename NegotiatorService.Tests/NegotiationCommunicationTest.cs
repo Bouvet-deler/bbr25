@@ -5,12 +5,12 @@ namespace Negotiator.Tests
     public class NegotiationServiceTests
     {
         private readonly NegotiationService _negotiationService;
-        private readonly NegotiationRequest _request;
+        private readonly Offer _request;
 
         public NegotiationServiceTests()
         {
             _negotiationService = new NegotiationService();
-            _request = new NegotiationRequest(
+            _request = new Offer(
                 InitiatorId:Guid.NewGuid(),   
                 ReceiverId:new Guid(),
                 NegotiationId : Guid.NewGuid(),
@@ -63,10 +63,10 @@ namespace Negotiator.Tests
             );
 
             // Act
-            var result = await _negotiationService.RespondToNegotiationAsync(responseRequest);
+            var result = _negotiationService.RespondToNegotiation(responseRequest);
 
             // Assert
-            Assert.Equal(OfferStatus.Accepted, result.OfferStatus);
+            Assert.Equal(ProposalStatus.Accepted, result.OfferStatus);
             Assert.Equal(negotiation.CardOffered, result.CardsExchanged);
             Assert.Equal(negotiation.CardWanted, result.CardsReceived);
         }
@@ -86,10 +86,10 @@ namespace Negotiator.Tests
             );
 
             // Act
-            var result = await _negotiationService.RespondToNegotiationAsync(responseRequest);
+            var result = _negotiationService.RespondToNegotiation(responseRequest);
 
             // Assert
-            Assert.Equal(OfferStatus.Declined, result.OfferStatus);
+            Assert.Equal(ProposalStatus.Declined, result.OfferStatus);
             Assert.Equal(negotiation.CardWanted, result.CardsExchanged);
             Assert.Equal(negotiation.CardOffered, result.CardsReceived);
         }

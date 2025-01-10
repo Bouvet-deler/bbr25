@@ -7,9 +7,9 @@ namespace BoardGameServer.Application
     {
         void Plant(Guid field);
         void EndPlanting();
-        NegotiationState OfferTrade(NegotiationRequest negotiationRequest);
+        NegotiationState OfferTrade(SharedModels.Offer negotiationRequest);
         (List<Card> CurrentPlayerHand, List<Card> OpponentPlayerHand) AcceptTrade(Player opponentPlayer, Guid offerId, List<Card> cardsExchanged, List<Card> cardsReceived);
-        void EndTrading(NegotiationState negotiationState);
+        void EndTrading(Guid negotiationId);
         void PlantTrade(Player player, Card card, Guid field);
     }
 }

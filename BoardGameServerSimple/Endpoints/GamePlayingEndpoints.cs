@@ -152,7 +152,7 @@ public static class GamePlayingEndpoints
         });
 
 
-        group.MapPost("/start-negotiation", static async Task<Results<Ok<NegotiationState>, NotFound>> ([FromBody] NegotiationRequest negotiationRequest, [FromServices] GameService gameService, [FromServices] MessageValidator messageValidator) =>
+        group.MapPost("/start-negotiation", static async Task<Results<Ok<NegotiationState>, NotFound>> ([FromBody] Offer negotiationRequest, [FromServices] GameService gameService, [FromServices] MessageValidator messageValidator) =>
         {
             NegotiationState response;
             var game = gameService.GetCurrentGame();
@@ -208,7 +208,7 @@ public static class GamePlayingEndpoints
                 {
                     return TypedResults.NotFound();
                 }
-                if (status.OfferStatus == OfferStatus.Accepted)
+                if (status.OfferStatus == ProposalStatus.Accepted)
                 {
                     NegotiationState negotiationState = CreateFinalnegotiationState(status);
                     negotiationService.EndNegotiation(negotiationState);
@@ -230,7 +230,7 @@ public static class GamePlayingEndpoints
     {
         return new NegotiationState(status.NegotiationId, status.InitiatorId, status.ReceiverId, status.CardsExchanged, status.CardsReceived)
         {
-            OfferAccepted = status.OfferStatus == OfferStatus.Accepted,
+            OfferAccepted = status.OfferStatus == ProposalStatus.Accepted,
             IsActive = false
         };
     }

@@ -12,13 +12,13 @@ namespace BoardGameServer.Tests.UnitTests;
 public class GameServiceTests
 {
     private readonly INegotiationService _negotiationService;
-    private readonly NegotiationRequest _negotiationRequest;
+    private readonly SharedModels.Offer _negotiationRequest;
 
 
     public GameServiceTests()
     {
         _negotiationService = A.Fake<INegotiationService>();
-        _negotiationRequest = new NegotiationRequest(
+        _negotiationRequest = new SharedModels.Offer(
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -133,7 +133,7 @@ public class GameServiceTests
         game.CurrentPhase = Phase.Trading;
         Card offeredCard = p2.Hand.Where(c => c.Type == "BlackEyedBean").Last();
         Card wantedCard = p1.Hand.Where(c => c.Type == "GardenBean").Last();
-        var negotiationRequest = new NegotiationRequest(
+        var negotiationRequest = new SharedModels.Offer(
             _negotiationRequest.InitiatorId,
             _negotiationRequest.ReceiverId,
             _negotiationRequest.NegotiationId,

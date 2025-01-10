@@ -5,7 +5,7 @@ namespace BoardGameServerSimple.Services;
 
 public class MessageValidator : IMessageValidator
 {
-    public bool Validate(NegotiationRequest negotiationRequest)
+    public bool Validate(Offer negotiationRequest)
     {
         throw new NotImplementedException();
     }

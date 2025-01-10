@@ -12,13 +12,13 @@ namespace BoardGameServer.Tests.UnitTests
     public class StateFlowTests
     {
         private readonly INegotiationService _negotiationService;
-        private readonly NegotiationRequest _negotiationRequest;
+        private readonly SharedModels.Offer _negotiationRequest;
         private readonly NegotiationState _negotiationState;
 
         public StateFlowTests()
         {
             _negotiationService = A.Fake<INegotiationService>();
-            _negotiationRequest = new NegotiationRequest(
+            _negotiationRequest = new SharedModels.Offer(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -173,7 +173,7 @@ namespace BoardGameServer.Tests.UnitTests
                 handList[2],
                 handList[3]
             ];
-            Offer trade = new Offer(cardsOffered, CardsRequested, Guid.NewGuid());
+            Application.Offer trade = new Application.Offer(cardsOffered, CardsRequested, Guid.NewGuid());
             var guids = cardsOffered.Select(o => o.Type).ToList();
             Assert.True(game.CurrentPlayer == p2);
             game.OfferTrade(_negotiationRequest);
@@ -249,7 +249,7 @@ namespace BoardGameServer.Tests.UnitTests
             Assert.True(catrin.DrawnCards.Count() == 0);
 
 
-            var negotiationRequest = new NegotiationRequest(
+            var negotiationRequest = new SharedModels.Offer(
                 albert.Id,
                 bjørn.Id,
                 Guid.NewGuid(),
@@ -258,7 +258,7 @@ namespace BoardGameServer.Tests.UnitTests
                     Card.SoyBean()
                 });
 
-            var negotiationRequest2 = new NegotiationRequest(
+            var negotiationRequest2 = new SharedModels.Offer(
                 albert.Id,
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -320,7 +320,7 @@ namespace BoardGameServer.Tests.UnitTests
             game.Plant(bjørnFields[1]);
             game.Plant(bjørnFields[0]);
 
-            Offer offer = new Offer(
+            Application.Offer offer = new Application.Offer(
             bjørn.DrawnCards.Where(c => c.Type == "SoyBean").ToList(),
                  new List<Card>() { Card.ChiliBean(), Card.StinkBean() },
                  Guid.NewGuid());

@@ -173,7 +173,7 @@ namespace BoardGameServer.Application
             }
         }
 
-        public NegotiationState OfferTrade(NegotiationRequest negotiationRequest)
+        public NegotiationState OfferTrade(SharedModels.Offer negotiationRequest)
         {
             this.TradingArea.Add(new Offer( negotiationRequest.CardsToExchange, negotiationRequest.CardsToReceive, negotiationRequest.NegotiationId));
             var negotiationState = NegotiationService.StartNegotiation(negotiationRequest);
@@ -187,9 +187,9 @@ namespace BoardGameServer.Application
 
         public async Task<ResultOfferRequest> Negotiate(ResponseToOfferRequest request)
         {
-            var response = await NegotiationService.RespondToNegotiationAsync(request);
+            var response = await NegotiationService.RespondToNegotiation(request);
             Player opponentPlayer = Players.Single(p => p.Id == request.ReceiverId);
-            if (response.OfferStatus == OfferStatus.Accepted)
+            if (response.OfferStatus == ProposalStatus.Accepted)
             {
                 var result = AcceptTrade(opponentPlayer, request.NegotiationId, response.CardsExchanged, response.CardsReceived);
                 //ToDo: Global variable?
@@ -199,14 +199,14 @@ namespace BoardGameServer.Application
                 {
                     CardsExchanged = response.CardsExchanged,
                     CardsReceived = response.CardsReceived,
-                    OfferStatus = OfferStatus.Accepted
+                    OfferStatus = ProposalStatus.Accepted
                 };
             }
             else
             {
                 return new ResultOfferRequest(CurrentPlayer.Id, request.ReceiverId, request.NegotiationId)
                 {
-                    OfferStatus = OfferStatus.Declined,
+                    OfferStatus = ProposalStatus.Declined,
                     CardsExchanged = new List<Card>(),
                     CardsReceived = new List<Card>()
                 };
@@ -216,13 +216,15 @@ namespace BoardGameServer.Application
         private void EndNegotiation(NegotiationState negotiationState)
         {
             NegotiationService.EndNegotiation(negotiationState);
-            EndTrading(negotiationState);
+            EndTrading(negotiationState.Id);
         }
 
-        public (List<Card> CurrentPlayerHand, List<Card> OpponentPlayerHand) AcceptTrade(Player opponentPlayer, Guid offerId, List<Card> cardsExchanged, List<Card> cardsReceived)
+        public (Queue<Card> CurrentPlayerHand, Queue<Card> OpponentPlayerHand) AcceptTrade(Player opponentPlayer, Guid offerId, List<Card> cardsExchanged, List<Card> cardsReceived)
         {
-            List<Card> currentPlayerHand = CurrentPlayer.Hand;
-            List<Card> opponentPlayerHand = opponentPlayer.Hand;
+            Queue<Card> currentPlayerHand = CurrentPlayer.Hand;
+            Queue<Card> opponentPlayerHand = opponentPlayer.Hand;
+            List<Card> currentPlayerTradedCards = new List<Card>();
+            List<Card> opponentPlayerTradedCards = new List<Card>();
             List<Card> cardsToRemoveFromCurrentPlayer = new List<Card>();
 
             foreach (var card in currentPlayerHand)
@@ -410,6 +412,8 @@ namespace BoardGameServer.Application
         {
             CurrentState = State.GameDone;
         }
+
+
     }
 }
 
