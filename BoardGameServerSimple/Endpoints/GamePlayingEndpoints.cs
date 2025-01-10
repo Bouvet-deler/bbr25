@@ -153,7 +153,7 @@ public static class GamePlayingEndpoints
         });
 
 
-        group.MapPost("/start-negotiation", static async Task<Results<Ok<NegotiationState>, NotFound, ValidationProblem>> (Guid player, [FromBody] NegotiationRequest negotiationRequest, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules, [FromServices] NegotiationService negotiationService) =>
+        group.MapPost("/start-negotiation", static async Task<Results<Ok<NegotiationState>, NotFound, ValidationProblem>> (Guid player, [FromBody] Offer negotiationRequest, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules, [FromServices] NegotiationService negotiationService) =>
         {
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             NegotiationState response;
@@ -179,16 +179,17 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapGet("/get-negotiation-status/{id:guid}", static async Task<Results<Ok<NegotiationState>, NotFound<ErrorResponse>>> ([FromServices] INegotiationService negotiationService, Guid id) =>
+        group.MapGet("/get-negotiation-status", static async Task<Results<Ok<NegotiationState>, NotFound<ErrorResponse>>> ([FromServices] INegotiationService negotiationService) =>
         {
             //Any negotiatins ongoing with id == id?
-            var status = negotiationService.GetNegotiationStatus(id);
-            if (status == null)
+            var status = negotiationService.GetNegotiationStatus();
+            if (status.negotiationState is null || status.negotiationState.IsActive == false)
             {
                 return TypedResults.NotFound(new ErrorResponse("Negotiation not found"));
             }
 
-            return TypedResults.Ok(status);
+            //ToDo: Refactor to return a DTO
+            return TypedResults.Ok(status.negotiationState);
         })
         .WithOpenApi(op =>
         {
@@ -197,8 +198,13 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/negotiation", static async Task<Results<Ok<ResultOfferRequest>, NotFound, ValidationProblem>> (Guid player, ResponseToOfferRequest request, [FromServices] INegotiationService negotiationService, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapPost("/negotiation", static async Task<Results<Ok, NotFound, ValidationProblem>> (Guid player, Offer request, [FromServices] INegotiationService negotiationService, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
+
+            //ToDo: Branch for iniator and rciever
+
+
+
             var game = gameService.GetCurrentGame();
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             //Valid card offered?
@@ -210,13 +216,13 @@ public static class GamePlayingEndpoints
                 return TypedResults.ValidationProblem(errors);
             }
 
-            var status = await negotiationService.RespondToNegotiationAsync(request);
+            var status = negotiationService.RegisterOffer(request);
             //ToDo: Get player
-            if (status.OfferStatus == OfferStatus.Accepted)
-            {
-                game.AcceptTrade(p,status.CardsGiven.Select(card=>card.Id).ToList(), status.CardsReceived.Select(card => card.Id).ToList());
-            }
-            return TypedResults.Ok<ResultOfferRequest>(status);
+            //if (status. == OfferStatus.Accepted)
+            //{
+            //    game.AcceptTrade(p,status.CardsGiven.Select(card=>card.Id).ToList(), status.CardsReceived.Select(card => card.Id).ToList());
+            //}
+            return TypedResults.Ok();
         })
         .WithOpenApi(op =>
         {
@@ -232,7 +238,7 @@ public static class GamePlayingEndpoints
     {
         return new NegotiationState(status.NegotiationId, status.InitiatorId, status.ReceiverId, status.CardsGiven, status.CardsReceived.Select(card => card.Type).ToList())
         {
-            OfferAccepted = status.OfferStatus == OfferStatus.Accepted,
+            OfferAccepted = status.OfferStatus == ProposalStatus.Accepted,
             IsActive = false
         };
     }

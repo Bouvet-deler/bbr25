@@ -75,11 +75,12 @@ public static class GameBoardEndpoints
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
             Deck = game.Deck.Count(),
-            AvailableTrades = game.NegotiationService.Negotiations.Select(negotiaton => new{
-                    negotiaton.Key,
-                    negotiaton.Value.CardOffered,
-                    negotiaton.Value.CardWanted,
-                    }),
+            AvailableTrades = game.NegotiationService.GetNegotiationStatus().negotiations.Select(negotiaton => new
+            {
+                negotiaton.Key,
+                negotiaton.Value.OfferedCards,
+                negotiaton.Value.CardTypesWanted
+            }),
             DiscardPile = game.Discard,
             Players = game.Players
             ?.Select(p => new
