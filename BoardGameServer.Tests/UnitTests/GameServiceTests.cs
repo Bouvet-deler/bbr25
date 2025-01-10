@@ -6,31 +6,34 @@ using System.Linq;
 using SharedModels;
 using Negotiator;
 using FakeItEasy;
+using ScoringService;
 
 namespace BoardGameServer.Tests.UnitTests;
 
 public class GameServiceTests
 {
     private readonly INegotiationService _negotiationService;
-    private readonly SharedModels.Offer _negotiationRequest;
 
+    private readonly IScoreRepository _scoreRepository ;
+    private readonly EloCalculator _eloCalculator ;
 
     public GameServiceTests()
     {
+        _scoreRepository = new ScoreRepository();
+        _eloCalculator = new EloCalculator(_scoreRepository);
         _negotiationService = A.Fake<INegotiationService>();
-        _negotiationRequest = new SharedModels.Offer(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            [Card.ChiliBean()],
-            [Card.BlackEyedBean()]
-        );
+
     }
 
+    //Følgende tester bør vi ha
+    //-- Sett registrer div spillere
+    //sjekker at rekkefølgen er lik
+    //
+    //
     [Fact]
     void StartGameWithOnePlayer_PlayerIsSetUp()
     {
-        var game = new Game(_negotiationService);
+        Game game = new Game(_negotiationService,_eloCalculator);
         string name = "Bendert";
         game.Join(name);
         game.StartGame();
@@ -41,17 +44,17 @@ public class GameServiceTests
         Assert.True(p.Fields.Any());
         Assert.True(p.Fields.Any());
         Assert.True(p.Name == name);
-        Assert.True(game.Deck.Count() > 0);
+        Assert.True(game.Deck.Count()>0);
     }
     [Fact]
     void StartGameWithTwoPlayers_PlayerTwoIsSetUp()
     {
-        var game = new Game(_negotiationService);
+        Game game = new Game(_negotiationService,_eloCalculator);
         string name = "Bendert";
         game.Join("Først");
         game.Join(name);
         game.StartGame();
-        Player p = game.Players.Where(s => !s.StartingPlayer).FirstOrDefault();
+        Player p = game.Players.Where(s=> !s.StartingPlayer).FirstOrDefault();
         Assert.NotNull(p);
         Assert.False(p.StartingPlayer);
         Assert.True(p.Hand.Any());
@@ -61,20 +64,20 @@ public class GameServiceTests
     [Fact]
     void StartGameWithThreePlayers_OnlyOneStartingPlayer()
     {
-        var game = new Game(_negotiationService);
+        Game game = new Game(_negotiationService,_eloCalculator);
         string name = "Bendert";
         game.Join("Først");
         game.Join("Andre");
         game.Join(name);
         game.StartGame();
-        Assert.NotNull(game.Players.Where(s => s.StartingPlayer).Single());
-        Assert.True(game.Players.Where(s => !s.StartingPlayer).Count() == 2);
+        Assert.NotNull(game.Players.Where(s=> s.StartingPlayer).Single());
+        Assert.True(game.Players.Where(s=> !s.StartingPlayer).Count() == 2);
 
     }
     [Fact]
     void JoinGame_PlayerCountIncreases()
     {
-        var game = new Game(_negotiationService);
+        Game game = new Game(_negotiationService,_eloCalculator);
         game.Join("Først");
         Assert.True(game.Players.Count() == 1);
         string name = "Bendert";
@@ -85,7 +88,7 @@ public class GameServiceTests
     [Fact]
     void JoinGame()
     {
-        var game = new Game(_negotiationService);
+        Game game = new Game(_negotiationService,_eloCalculator);
         game.Join("Først");
         Assert.True(game.Players.Count() == 1);
         string name = "Bendert";
@@ -96,7 +99,7 @@ public class GameServiceTests
     [Fact]
     void GoToPlantingPhase_AddsCardsToHand()
     {
-        var game = new Game(_negotiationService);
+        Game game = new Game(_negotiationService,_eloCalculator);
         game.Join("Først");
         string name = "Bendert";
         game.Join(name);
@@ -112,7 +115,7 @@ public class GameServiceTests
     [Fact]
     void Trade_TradeAwayLastChilibean_LastChilibeanRemoved()
     {
-        var game = new Game(_negotiationService);
+        Game game = new Game(_negotiationService,_eloCalculator);
         game.Join("Først");
         string name = "Bendert";
         game.Join(name);
@@ -121,31 +124,23 @@ public class GameServiceTests
         game.StartGame();
         Player p1 = game.Players.First();
         Player p2 = game.Players.Last();
-        foreach (var card in p1.Hand)
+        foreach(var card in p1.Hand)
         {
             Console.WriteLine(card.Type);
         }
-        foreach (var card in p2.Hand)
+        foreach(var card in p2.Hand)
         {
             Console.WriteLine(card.Type);
         }
         game.CurrentPlayer = p2;
         game.CurrentPhase = Phase.Trading;
-        Card offeredCard = p2.Hand.Where(c => c.Type == "BlackEyedBean").Last();
-        Card wantedCard = p1.Hand.Where(c => c.Type == "GardenBean").Last();
-        var negotiationRequest = new SharedModels.Offer(
-            _negotiationRequest.InitiatorId,
-            _negotiationRequest.ReceiverId,
-            _negotiationRequest.NegotiationId,
-            new List<Card> { offeredCard },
-            new List<Card> { wantedCard }
-        );
-        game.OfferTrade(negotiationRequest);
-        var (CurrentPlayerHand, OpponentPlayerHand) = game.AcceptTrade(p1, negotiationRequest.NegotiationId, negotiationRequest.CardsToExchange, negotiationRequest.CardsToReceive);
+        Card offeredCard = p2.Hand.Where(c=>c.Type == "ChiliBean").Last();
+        NegotiationRequest offer = new NegotiationRequest(game.CurrentPlayer.Id, p1.Id, Guid.NewGuid(), new List<Card> { offeredCard }, new List<string>());
+        _negotiationService.StartNegotiation(offer);
+        game.AcceptTrade(p1, offer.OfferedCards.Select(card => card.Id).ToList(), new List<Guid>());
 
-        Assert.Contains(wantedCard, CurrentPlayerHand);
-        Assert.DoesNotContain(wantedCard, OpponentPlayerHand);
-        Assert.Contains(offeredCard, OpponentPlayerHand);
-        Assert.DoesNotContain(offeredCard, CurrentPlayerHand);
+        Assert.Contains(offeredCard, p1.TradedCards);
+        Assert.False(p2.Hand.Contains(offeredCard));
+        Assert.True(p2.Hand.Contains(p2.Hand.Where(c=>c.Type == "ChiliBean").Last()));
     }
 }

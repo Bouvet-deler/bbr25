@@ -5,20 +5,23 @@ using System.ComponentModel;
 
 namespace Negotiator;
 
-public class NegotiationService : INegotiationService
+public class NegotiationService : INegotiationService  //ToDo: update interface
 {
     private readonly ConcurrentDictionary<Guid, Offer> _negotiations = new();
     private NegotiationState? _negotiationState;
 
+    //ToDo: This will not work in a real-world scenario. This is just for testing purposes.
+    //Need to support multiple negotiations at the same time.
+    private Guid _negotiationId = Guid.NewGuid();
 
     public NegotiationState StartNegotiation(Offer request)
     {
         _negotiationState = new NegotiationState(
             request.InitiatorId,
             request.ReceiverId,
-            Guid.NewGuid(),
-            request.CardsToExchange,
-            request.CardsToReceive
+            _negotiationId,
+            request.OfferedCards,
+            request.CardTypesWanted
         )
         {
             StartTime = DateTime.UtcNow,

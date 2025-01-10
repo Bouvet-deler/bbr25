@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NegotiationService\Negotiator.csproj" />
     <ProjectReference Include="..\SharedModels\SharedModels.csproj" />
+    <ProjectReference Include="..\ScoringService\ScoringService.csproj" />
   </ItemGroup>
 
 </Project>

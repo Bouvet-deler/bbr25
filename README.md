@@ -46,11 +46,12 @@ en bønne om du har andre åkere med 2 eller flere
 
 Tekniske regeler:
 
-Spillet må være i gang for at du skal kunne gjøre handlinger
+Teknisk regel 1: Spillet må være i gang for at du skal kunne gjøre handlinger
 
-Du kan bare spille når det er din tur
+Teknisk regel 2: Du kan bare spille når det er din tur
 
-du kan bare
+Teknisk regel 3: du kan bare utføre en handling du er i den fasen handlingen hører til
+Teknisk regel 4: Du kan kun plante i felt som eksisterer
 
 
 

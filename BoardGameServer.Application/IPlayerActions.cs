@@ -1,15 +1,14 @@
-using Negotiator.Models;
 using SharedModels;
 
-namespace BoardGameServer.Application
+namespace BoardGameServer.Application;
+
+public interface IPlayerActions
 {
-    public interface IPlayerActions
-    {
-        void Plant(Guid field);
-        void EndPlanting();
-        NegotiationState OfferTrade(SharedModels.Offer negotiationRequest);
-        (List<Card> CurrentPlayerHand, List<Card> OpponentPlayerHand) AcceptTrade(Player opponentPlayer, Guid offerId, List<Card> cardsExchanged, List<Card> cardsReceived);
-        void EndTrading(Guid negotiationId);
-        void PlantTrade(Player player, Card card, Guid field);
-    }
+    void Plant(Guid fieldId);
+    void EndPlanting();
+
+    void AcceptTrade(Player player,List<Guid> offeredCards, List<Guid> recievedCards);
+    void EndTrading();
+    void PlantTrade(Player player, Card card, Guid fieldId);
+    Task<ResultOfferRequest> Negotiate(ResponseToOfferRequest request);
 }
