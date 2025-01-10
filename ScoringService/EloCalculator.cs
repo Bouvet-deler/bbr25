@@ -1,5 +1,10 @@
 namespace ScoringService
 {
+
+    /// <summary>
+    /// Denne kom inn i eksistens fordi jeg trengte å dumpe resultatet av en runde før
+    /// jeg sendte den videre til et nytt spill
+    /// </summary>
     public class EloCalculator
     {
         private readonly int _k = 30;
