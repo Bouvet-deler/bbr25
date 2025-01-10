@@ -53,6 +53,9 @@ Teknisk regel 2: Du kan bare spille når det er din tur
 Teknisk regel 3: du kan bare utføre en handling du er i den fasen handlingen hører til
 Teknisk regel 4: Du kan kun plante i felt som eksisterer
 
+## Bilder
+![Brett for en spiller](https://github.com/kaifriis/BoardGameServerSimple/blob/master/regler.jpg)
+![Regler for de ulike fasene for en spiller](https://github.com/kaifriis/BoardGameServerSimple/blob/master/spill.jpg)
 
 
 ## Din klient
