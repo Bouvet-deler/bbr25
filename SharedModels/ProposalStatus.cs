@@ -1,6 +1,6 @@
 namespace SharedModels;
 
-public enum OfferStatus
+public enum ProposalStatus
 {
     Accepted,
     Declined,

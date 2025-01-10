@@ -1,16 +1,15 @@
 using Negotiator.Models;
 using SharedModels;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 
-namespace Negotiator;
-
-public interface INegotiationService
+namespace Negotiator
 {
-    public  ConcurrentDictionary<Guid, NegotiationState> Negotiations  {get;}
-    event EventHandler<NegotiationState>? OnNegotiationCompleted;
-    NegotiationState StartNegotiation(NegotiationRequest request);
-    NegotiationState? GetNegotiationStatus(Guid id);
-    Task<ResultOfferRequest> RespondToNegotiationAsync(ResponseToOfferRequest request);
-    void EndNegotiation(object? state);
+    public interface INegotiationService
+    {
+        NegotiationState StartNegotiation(Offer request);
+        (NegotiationState? negotiationState, ConcurrentDictionary<Guid, Offer> negotiations) GetNegotiationStatus();
+        string RegisterOffer(Offer offer);
+        ResultOfferRequest RespondToNegotiation(ResponseToOfferRequest response);
+        void EndNegotiation(object? state);
+    }
 }

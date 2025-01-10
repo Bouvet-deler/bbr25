@@ -5,9 +5,7 @@ public class ValidationRules
 {
 
     public ValidationRules()
-    {
-
-    }
+    {}
 
     public void EndPlantingValidation(Game game, Player player, IDictionary<string, string[]> errors)
     {
@@ -45,13 +43,13 @@ public class ValidationRules
         FieldIsPlayable(player,player.DrawnCards.Where(c => c.Id == card).Union(player.TradedCards.Where(c => c.Id == card)).Single() , field, errors);
     }
 
-    public void NegotiationValidation(Game game, Player player, ResponseToOfferRequest negotiationRequest, IDictionary<string, string[]> errors)
+    public void NegotiationValidation(Game game, Player player, Offer negotiationRequest, IDictionary<string, string[]> errors)
     {
         IsInPlayingState(game, errors);
         IsCurrentPlayer(game, player, errors);
         IsInTradingPhase(game, errors);
     }
-    public void StartNegotiationValidation(Game game, Player player, NegotiationRequest negotiationRequest, IDictionary<string, string[]> errors)
+    public void StartNegotiationValidation(Game game, Player player, Offer negotiationRequest, IDictionary<string, string[]> errors)
     {
         IsInPlayingState(game, errors);
         IsCurrentPlayer(game, player, errors);

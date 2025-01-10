@@ -163,7 +163,7 @@ public class StateFlowTests
             handList[2],
             handList[3]
         };
-        var trade = new NegotiationRequest(p1.Id, p2.Id, Guid.NewGuid(), offer, price.Select(p => p.Type).ToList());
+        var trade = new Offer(p1.Id, p2.Id, Guid.NewGuid(), offer, price.Select(p => p.Type).ToList());
 
         var guids = offer.Select(o=>o.Type).ToList();
         Assert.True(game.CurrentPlayer == p2);
@@ -242,8 +242,8 @@ public class StateFlowTests
 
 
 
-        var trade1 = new NegotiationRequest(albert.Id, bjørn.Id, Guid.NewGuid(), albert.DrawnCards, new List<string>() { Card.SoyBean().Type });
-        var trade2 = new NegotiationRequest(albert.Id, bjørn.Id, Guid.NewGuid(),
+        var trade1 = new Offer(albert.Id, bjørn.Id, Guid.NewGuid(), albert.DrawnCards, new List<string>() { Card.SoyBean().Type });
+        var trade2 = new Offer(albert.Id, bjørn.Id, Guid.NewGuid(),
                 albert.Hand.Where(c => c.Type == "RedBean").Union(albert.Hand.Where(c => c.Type == "StinkBean")).ToList(),
                 new List<string>() { Card.GardenBean().Type });
         trade2.OfferedCards.Single(e => e.Type == "StinkBean");
@@ -295,7 +295,7 @@ public class StateFlowTests
         game.Plant(bjørnFields[1]);
         game.Plant(bjørnFields[0]);
 
-        var offer = new NegotiationRequest(
+        var offer = new Offer(
                 bjørn.Id,
                 albert.Id,
                 Guid.NewGuid(),
