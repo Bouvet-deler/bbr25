@@ -5,7 +5,7 @@ using Negotiator;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -15,10 +15,22 @@ builder.Services.AddSingleton<INegotiationService, NegotiationService>();
 builder.Services.AddSingleton<EloCalculator, EloCalculator>();
 builder.Services.AddSingleton<IScoreRepository, ScoreRepository>();
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy  =>
+                      {
+                          policy.WithOrigins("http://localhost:5173");
+                      });
+});
+
+
 var app = builder.Build();
 
 app.MapOpenApi();
 app.MapGameBoardEndpoints();
+app.MapScoreBoardEndpoints();
     app.MapPlayerEndpoints();
 
     if (app.Environment.IsDevelopment())

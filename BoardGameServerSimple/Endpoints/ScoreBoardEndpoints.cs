@@ -7,7 +7,7 @@ namespace BoardGameServerSimple.Endpoints;
 
 public static class ScoreBoardEndpoints
 {
-    public static IEndpointRouteBuilder MapGameBoardEndpoints(this IEndpointRouteBuilder routes)
+    public static IEndpointRouteBuilder MapScoreBoardEndpoints(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("/api/score");
 
