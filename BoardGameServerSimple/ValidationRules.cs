@@ -43,13 +43,13 @@ public class ValidationRules
         FieldIsPlayable(player,player.DrawnCards.Where(c => c.Id == card).Union(player.TradedCards.Where(c => c.Id == card)).Single() , field, errors);
     }
 
-    public void NegotiationValidation(Game game, Player player, Offer negotiationRequest, IDictionary<string, string[]> errors)
+    public void AcceptTradeValidation(Game game, Player player, Accept negotiationRequest, IDictionary<string, string[]> errors)
     {
         IsInPlayingState(game, errors);
         IsCurrentPlayer(game, player, errors);
         IsInTradingPhase(game, errors);
     }
-    public void StartNegotiationValidation(Game game, Player player, Offer negotiationRequest, IDictionary<string, string[]> errors)
+    public void RequestTradeValidation(Game game, Player player, Offer negotiationRequest, IDictionary<string, string[]> errors)
     {
         IsInPlayingState(game, errors);
         IsCurrentPlayer(game, player, errors);
@@ -96,9 +96,9 @@ public class ValidationRules
 
     private void IsInPlantingPhase(Game game, Player player, IDictionary<string, string[]> errors)
     {
-        if( game.CurrentPhase != Phase.Planting || game.CurrentPhase == Phase.PlantingOptional)
+        if( !(game.CurrentPhase == Phase.Planting || game.CurrentPhase == Phase.PlantingOptional))
         {
-            errors["Teknisk regel 3"] = ["Du kan bare gjøre denne handlingen på din tur"];
+            errors["Teknisk regel 3"] = ["CurrentPhase må være Planting eller PlantingOptional for å kunne gjøre en plant"];
         }
     }
 

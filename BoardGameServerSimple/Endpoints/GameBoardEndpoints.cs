@@ -10,12 +10,12 @@ public static class GameBoardEndpoints
     {
         var group = routes.MapGroup("/api/game");
 
-        group.MapGet("/", ( string? player, [FromServices] GameService gameService) =>
+        group.MapGet("/", (string? playerId, [FromServices] GameService gameService) =>
         {
             Guid playerKey;
             var game = gameService.GetCurrentGame();
             Queue<Card> hand = new Queue<Card>(); ;
-            if (Guid.TryParse(player, out playerKey))
+            if (Guid.TryParse(playerId, out playerKey))
             {
                 var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
                 if (p != null) hand = p.Hand;
@@ -75,11 +75,11 @@ public static class GameBoardEndpoints
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
             Deck = game.Deck.Count(),
-            AvailableTrades = game.NegotiationService.GetNegotiationStatus().negotiations.Select(negotiaton => new
+            AvailableTrades = game.TradingArea.Select(negotiaton => new
             {
-                negotiaton.Key,
-                negotiaton.Value.OfferedCards,
-                negotiaton.Value.CardTypesWanted
+                negotiaton.InitiatorId,
+                negotiaton.OfferedCards,
+                negotiaton.CardTypesWanted
             }),
             DiscardPile = game.Discard,
             Players = game.Players
@@ -100,5 +100,4 @@ public static class GameBoardEndpoints
             })
         };
     }
-
 }

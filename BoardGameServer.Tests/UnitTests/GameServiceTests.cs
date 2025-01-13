@@ -33,7 +33,7 @@ public class GameServiceTests
     [Fact]
     void StartGameWithOnePlayer_PlayerIsSetUp()
     {
-        Game game = new Game(_negotiationService, _eloCalculator);
+        Game game = new Game( _eloCalculator);
         string name = "Bendert";
         game.Join(name);
         game.StartGame();
@@ -49,7 +49,7 @@ public class GameServiceTests
     [Fact]
     void StartGameWithTwoPlayers_PlayerTwoIsSetUp()
     {
-        Game game = new Game(_negotiationService, _eloCalculator);
+        Game game = new Game( _eloCalculator);
         string name = "Bendert";
         game.Join("Først");
         game.Join(name);
@@ -64,7 +64,7 @@ public class GameServiceTests
     [Fact]
     void StartGameWithThreePlayers_OnlyOneStartingPlayer()
     {
-        Game game = new Game(_negotiationService, _eloCalculator);
+        Game game = new Game( _eloCalculator);
         string name = "Bendert";
         game.Join("Først");
         game.Join("Andre");
@@ -77,7 +77,7 @@ public class GameServiceTests
     [Fact]
     void JoinGame_PlayerCountIncreases()
     {
-        Game game = new Game(_negotiationService, _eloCalculator);
+        Game game = new Game( _eloCalculator);
         game.Join("Først");
         Assert.True(game.Players.Count() == 1);
         string name = "Bendert";
@@ -88,7 +88,7 @@ public class GameServiceTests
     [Fact]
     void JoinGame()
     {
-        Game game = new Game(_negotiationService, _eloCalculator);
+        Game game = new Game( _eloCalculator);
         game.Join("Først");
         Assert.True(game.Players.Count() == 1);
         string name = "Bendert";
@@ -99,7 +99,7 @@ public class GameServiceTests
     [Fact]
     void GoToPlantingPhase_AddsCardsToHand()
     {
-        Game game = new Game(_negotiationService, _eloCalculator);
+        Game game = new Game( _eloCalculator);
         game.Join("Først");
         string name = "Bendert";
         game.Join(name);
@@ -115,7 +115,7 @@ public class GameServiceTests
     [Fact]
     void Trade_TradeAwayLastChilibean_LastChilibeanRemoved()
     {
-        Game game = new Game(_negotiationService, _eloCalculator);
+        Game game = new Game( _eloCalculator);
         game.Join("Først");
         string name = "Bendert";
         game.Join(name);
@@ -135,9 +135,9 @@ public class GameServiceTests
         game.CurrentPlayer = p2;
         game.CurrentPhase = Phase.Trading;
         Card offeredCard = p2.Hand.Where(c => c.Type == "ChiliBean").Last();
-        Offer offer = new Offer(game.CurrentPlayer.Id, p1.Id, Guid.NewGuid(), new List<Card> { offeredCard }, new List<string>());
+        Offer offer = new Offer(game.CurrentPlayer.Id, new List<Guid> { offeredCard.Id }, new List<string>());
         _negotiationService.StartNegotiation(offer);
-        game.AcceptTrade(p1, offer.OfferedCards.Select(card => card.Id).ToList(), new List<Guid>());
+        game.AcceptTrade(p1, offer.OfferedCards, new List<Guid>());
 
         Assert.Contains(offeredCard, p1.TradedCards);
         Assert.False(p2.Hand.Contains(offeredCard));

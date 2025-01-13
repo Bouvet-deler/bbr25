@@ -6,28 +6,25 @@ using System.Collections.Generic;
 using SharedModels;
 using ScoringService;
 using FakeItEasy;
-using Negotiator.Models;
-using Negotiator;
+
 namespace BoardGameServer.Tests.UnitTests;
 
 public class StateFlowTests
 {
-    private readonly INegotiationService _negotiationService;
 
-    private readonly IScoreRepository _scoreRepository ;
-    private readonly EloCalculator _eloCalculator ;
+    private readonly IScoreRepository _scoreRepository;
+    private readonly EloCalculator _eloCalculator;
 
     public StateFlowTests()
     {
         _scoreRepository = new ScoreRepository();
         _eloCalculator = new EloCalculator(_scoreRepository);
-        _negotiationService = A.Fake<INegotiationService>();
     }
 
     [Fact]
     public void PlantWhenInPlantingPhaseTakesYouToPlantingOptional()
     {
-        Game game = new Game(_negotiationService,_eloCalculator);
+        Game game = new Game(_eloCalculator);
         game.Join("Benny");
         game.Join("Benny");
         game.StartGame();
@@ -40,7 +37,7 @@ public class StateFlowTests
     [Fact]
     public void PlantWhenInPlantingOptionalTakesYouToTrading()
     {
-        Game game = new Game(_negotiationService,_eloCalculator);
+        Game game = new Game(_eloCalculator);
         game.Join("Benny");
         game.Join("Benny");
         game.StartGame();
@@ -54,7 +51,7 @@ public class StateFlowTests
     [Fact]
     public void EndPlantingInPlantingOptionalTakesYouToTrading()
     {
-        Game game = new Game(_negotiationService,_eloCalculator);
+        Game game = new Game(_eloCalculator);
         game.Join("Benny");
         game.Join("Benny");
         game.StartGame();
@@ -68,7 +65,7 @@ public class StateFlowTests
     [Fact]
     public void EndTradingInPlantingOptionalTakesYouToTradePlanting()
     {
-        Game game = new Game(_negotiationService,_eloCalculator);
+        Game game = new Game(_eloCalculator);
         game.Join("Benny");
         game.Join("Benny");
         game.StartGame();
@@ -84,7 +81,7 @@ public class StateFlowTests
     [Fact]
     public void EndPlantingInPlantingTakesYouToTrading()
     {
-        Game game = new Game(_negotiationService,_eloCalculator);
+        Game game = new Game(_eloCalculator);
         game.Join("Benny");
         game.Join("Benny");
         game.StartGame();
@@ -99,7 +96,7 @@ public class StateFlowTests
     [Fact]
     public void PlantTradeFinalCallMakesItTheNextPlayersTurn()
     {
-        Game game = new Game(_negotiationService,_eloCalculator);
+        Game game = new Game(_eloCalculator);
         game.Join("Benny");
         game.Join("Benny");
         game.StartGame();
@@ -127,7 +124,7 @@ public class StateFlowTests
     public void GameRoundTwoPlayers_PlantInFirstField()
     {
         int numCards = 104;
-        Game game = new Game(_negotiationService,_eloCalculator);
+        Game game = new Game(_eloCalculator);
         game.Join("Benny");
         game.Join("Bjørn");
         game.StartGame();
@@ -163,12 +160,11 @@ public class StateFlowTests
             handList[2],
             handList[3]
         };
-        var trade = new Offer(p1.Id, p2.Id, Guid.NewGuid(), offer, price.Select(p => p.Type).ToList());
+        var trade = new Offer(p1.Id, offer.Select(c=>c.Id).ToList(), price.Select(p => p.Type).ToList());
 
         var guids = offer.Select(o=>o.Type).ToList();
         Assert.True(game.CurrentPlayer == p2);
-         _negotiationService.StartNegotiation(trade);
-        game.AcceptTrade(p1, trade.OfferedCards.Select(card=>card.Id).ToList(), price.Select(s=>s.Id).ToList());
+        game.AcceptTrade(p1, trade.OfferedCards, price.Select(s=>s.Id).ToList());
         game.EndTrading();
         while (p1.DrawnCards.Any())
         {
@@ -197,9 +193,8 @@ public class StateFlowTests
     [Fact]
     public void GameRoundTwoPlayers_HilmarActuallyPlays()
     {
-        var negotiationService = new NegotiationService();
         int numCards = 104;
-        Game game = new Game(negotiationService,_eloCalculator);
+        Game game = new Game(_eloCalculator);
         game.Join("Albert");
         game.Join("Bjørn");
         game.Join("Catrin");
@@ -242,17 +237,11 @@ public class StateFlowTests
 
 
 
-        var trade1 = new Offer(albert.Id, bjørn.Id, Guid.NewGuid(), albert.DrawnCards, new List<string>() { Card.SoyBean().Type });
-        var trade2 = new Offer(albert.Id, bjørn.Id, Guid.NewGuid(),
-                albert.Hand.Where(c => c.Type == "RedBean").Union(albert.Hand.Where(c => c.Type == "StinkBean")).ToList(),
-                new List<string>() { Card.GardenBean().Type });
-        trade2.OfferedCards.Single(e => e.Type == "StinkBean");
-        trade2.OfferedCards.Single(e => e.Type == "RedBean");
+        var trade1 = new Offer(albert.Id, albert.DrawnCards.Select(c=>c.Id).ToList(), new List<string>() { Card.SoyBean().Type });
+        var trade2 = new Offer(albert.Id, albert.Hand.Where(c => c.Type == "RedBean").Union(albert.Hand.Where(c => c.Type == "StinkBean")).Select(s=>s.Id).ToList(), new List<string>() { Card.GardenBean().Type });
 
-        _negotiationService.StartNegotiation(trade1);
-        _negotiationService.StartNegotiation(trade2);
-        game.AcceptTrade(catrin,trade1.OfferedCards.Select(card=>card.Id).ToList(), catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
-        game.AcceptTrade(bjørn,trade2.OfferedCards.Select(card=>card.Id).ToList(), bjørn.Hand.Where(c=> c.Type == "GardenBean").Select(s=>s.Id).ToList());
+        game.AcceptTrade(catrin,trade1.OfferedCards, catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
+        game.AcceptTrade(bjørn,trade2.OfferedCards, bjørn.Hand.Where(c=> c.Type == "GardenBean").Select(s=>s.Id).ToList());
 
         game.EndTrading();
         Assert.True(albert.Hand.Count() == 2);
@@ -297,15 +286,12 @@ public class StateFlowTests
 
         var offer = new Offer(
                 bjørn.Id,
-                albert.Id,
-                Guid.NewGuid(),
-                bjørn.DrawnCards.Where(c => c.Type == "SoyBean").ToList(),
+                bjørn.DrawnCards.Where(c => c.Type == "SoyBean").ToList().Select(c=> c.Id).ToList(),
                 new List<string> { "ChiliBean", "StinkBean" }
                 );
 
-        _negotiationService.StartNegotiation(offer);
 
-        game.AcceptTrade(albert,offer.OfferedCards.Select(card=>card.Id).ToList() , 
+        game.AcceptTrade(albert,offer.OfferedCards , 
                 albert.Hand.Where(c => c.Type == "ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
 
         game.EndTrading();

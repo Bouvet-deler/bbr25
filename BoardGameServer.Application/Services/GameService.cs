@@ -7,12 +7,10 @@ namespace BoardGameServer.Application.Services
     public class GameService
     {
         private readonly Game _game;
-        private readonly INegotiationService _negotiationService;
 
-        public GameService(INegotiationService negotiationService, EloCalculator elocalculator)
+        public GameService(EloCalculator elocalculator)
         {
-            _negotiationService = negotiationService;
-            _game = new Game(_negotiationService, elocalculator);
+            _game = new Game( elocalculator);
         }
 
         public Game GetCurrentGame()

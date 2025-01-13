@@ -26,17 +26,17 @@ public class Game : IPlayerActions, IRegisterActions
     public Random random = new Random();
     private readonly EloCalculator _eloCalculator;
 
-    public readonly INegotiationService NegotiationService;
+    public readonly List<Offer> TradingArea;
 
-    public Game(INegotiationService negotiationService, EloCalculator eloCalculator)
+    public Game(EloCalculator eloCalculator)
     {
         CurrentState = State.Registering;
         Players = new List<Player>();
         Discard = new Stack<Card>();
         Deck = new Stack<Card>();
+        TradingArea = new List<Offer>();
 
         _eloCalculator = eloCalculator;
-        NegotiationService = negotiationService;
     }
 
     //TODO registrer spillerene i eloRatingen
@@ -180,6 +180,10 @@ public class Game : IPlayerActions, IRegisterActions
         }
     }
 
+    public void RequestTrade(Offer offer)
+    {
+        TradingArea.Add(offer);
+    }
 
     public void AcceptTrade(Player player, List<Guid> offeredCards, List<Guid> recievedCards)
     {
@@ -235,7 +239,6 @@ public class Game : IPlayerActions, IRegisterActions
     public void EndTrading()
     {
         //ToDo: This for NegotiationState object is needed for the timer. Can be removed if we don't use timer. 
-        EndNegotiation(new NegotiationState(CurrentPlayer.Id, Guid.Empty, Guid.NewGuid(), new List<Card>(), new List<string>()));
         switch (CurrentPhase)
         {
             case Phase.Trading:
@@ -389,16 +392,6 @@ public class Game : IPlayerActions, IRegisterActions
             .ToList<string>();
 
         _eloCalculator.ScoreGame(players);
-    }
-
-    private void EndNegotiation(NegotiationState negotiationState)
-    {
-        NegotiationService.EndNegotiation(negotiationState);
-    }
-
-    public async Task<ResultOfferRequest> Negotiate(ResponseToOfferRequest request)
-    {
-        throw new NotImplementedException();
     }
 }
 

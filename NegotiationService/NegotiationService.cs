@@ -20,7 +20,7 @@ public class NegotiationService : INegotiationService  //ToDo: update interface
             request.InitiatorId,
             request.ReceiverId,
             _negotiationId,
-            request.OfferedCards,
+            null,
             request.CardTypesWanted
         )
         {
