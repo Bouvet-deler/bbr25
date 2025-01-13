@@ -45,4 +45,5 @@ app.MapScoreBoardEndpoints();
     }
 
     app.UseHttpsRedirection();
+    app.UseCors(MyAllowSpecificOrigins);
     app.Run();
