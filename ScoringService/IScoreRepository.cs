@@ -5,6 +5,7 @@ namespace ScoringService
     {
         public int GetScoreByName(string name);
         public void UpdateScore(string name, int newScore);
+        public IDictionary<string, int> GetScores();
     }
 
     public class ScoreRepository : IScoreRepository
@@ -29,6 +30,10 @@ namespace ScoringService
             eloScores[name] = newScore;
         }
         
+        public IDictionary<string, int> GetScores()
+        {
+            return eloScores;
+        }
         public void PrintAllScores()
         {
             foreach(var kv in eloScores)
