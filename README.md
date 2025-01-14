@@ -135,6 +135,8 @@ Teknisk regel 4: Du kan kun plante i felt som eksisterer
 
 
 ## Din klient
+Open API dokumentasjon for spillserver finner du her: 
+https://**server address**/scalar/v1
 
 Først må du registrere spilleren din. endepunktet /
 Du skal skrive en klient som spiller spillet. Endepunktet %TODO% gir deg spillets
