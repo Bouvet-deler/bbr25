@@ -1,20 +1,20 @@
 ﻿using Azure;
 using Azure.Data.Tables;
+using Microsoft.Extensions.Configuration;
 
 namespace ScoringService;
 
 public class AzureScoreRepository : IScoreRepository
 {
-    private readonly string _connectionString = "";
     private readonly string _tableName = "BBRScoreStorage";
     private readonly string _partitionKey = "Default";
     private readonly string _scoreKey = "Score";
 
     private readonly TableClient _scoreTable;
-    public AzureScoreRepository()
+    public AzureScoreRepository(IConfiguration configuration)
     {
 
-        _scoreTable = new TableClient(_connectionString, _tableName);
+        _scoreTable = new TableClient(configuration.GetConnectionString("ScoreConnection"), _tableName);
         _scoreTable.CreateIfNotExists();
     }
 
