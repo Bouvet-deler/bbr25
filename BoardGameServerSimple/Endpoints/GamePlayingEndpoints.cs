@@ -48,7 +48,7 @@ public static class GamePlayingEndpoints
         /*     return op; */
         /* }); */
 
-        group.MapPost("/plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapGet("/plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
@@ -69,7 +69,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/end-planting", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapGet("/end-planting", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 
         Console.WriteLine("hei");
@@ -90,7 +90,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/end-trading", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapGet("/end-trading", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame();
@@ -110,7 +110,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/trade-plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid cardId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapGet("/trade-plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid cardId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
@@ -134,7 +134,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/harvest-field", static async Task<Results<Ok, ValidationProblem>> (Guid playerId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapGet("/harvest-field", static async Task<Results<Ok, ValidationProblem>> (Guid playerId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame();
