@@ -8,12 +8,12 @@ namespace ScoringService
     public class EloCalculator
     {
         private readonly int _k = 30;
-        private readonly IScoreRepository _scoreRepository;
+        public readonly IScoreRepository ScoreRepository;
 
         public EloCalculator(IScoreRepository scoreRepository)
         {
 
-            _scoreRepository = scoreRepository;
+            ScoreRepository = scoreRepository;
         }
 
         /// <summary>
@@ -35,16 +35,16 @@ namespace ScoringService
             {
                 var name1 = ranking[i];
                 var name2 = ranking[i+1];
-                int elo1 = _scoreRepository.GetScoreByName(name1);
-                int elo2 = _scoreRepository.GetScoreByName(name2);
+                int elo1 = ScoreRepository.GetScoreByName(name1);
+                int elo2 = ScoreRepository.GetScoreByName(name2);
                 double probability1 = (1.0 /(1.0 + Math.Pow(10, (elo1 - elo2)/400.0)));
                 double probability2 = (1.0 /(1.0 + Math.Pow(10, (elo2 - elo1)/400.0)));
                 Console.WriteLine(elo1);
                 // Vi vet at den som kommer først var den som vant, siden vi har sortert
                 int newElo1 = (int)(elo1 + _k*(1.0 - probability1)); 
                 int newElo2 = (int)(elo2 + _k*(0.0 - probability2));
-                _scoreRepository.UpdateScore(name1, newElo1);
-                _scoreRepository.UpdateScore(name2, newElo2);
+                ScoreRepository.UpdateScore(name1, newElo1);
+                ScoreRepository.UpdateScore(name2, newElo2);
             }
         }
     }

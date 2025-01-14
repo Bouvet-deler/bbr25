@@ -15,6 +15,8 @@ public static class GameBoardEndpoints
             Guid playerKey;
             var game = gameService.GetCurrentGame();
             Queue<Card> hand = new Queue<Card>(); ;
+            //Foreløpig gjøres dette bare her
+            game.CheckForTimeout();
             if (Guid.TryParse(playerId, out playerKey))
             {
                 var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
@@ -74,6 +76,8 @@ public static class GameBoardEndpoints
             CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
+            PhaseTimeLeft =  game.LastStateChange.AddMinutes(2) - DateTime.Now,
+
             Deck = game.Deck.Count(),
             AvailableTrades = game.TradingArea.Select(negotiaton => new
             {

@@ -114,6 +114,7 @@ public class ValidationRules
     {
         if(!(player.DrawnCards.Any(c => c.Id == card) || player.TradedCards.Any(c => c.Id == card)))
         {
+            Console.WriteLine("hei");
             errors["Teknisk regel 3"] = ["Kortet du forsøkte å plante finnes ikke i de trukkede eller byttede kortene"];
         } 
     }
@@ -131,9 +132,11 @@ public class ValidationRules
         Card cardInField = player.Fields[field].FirstOrDefault();
         if (cardInField != null)
         {
+            Console.WriteLine("cardErIkkeNull");
             if(cardInField.Type != card.Type)
             {
 
+            Console.WriteLine("error");
             errors["Spillregel 1"] = ["Dette feltet har en annen bønnetype i seg"];
             }
         }

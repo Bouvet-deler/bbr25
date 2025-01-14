@@ -18,7 +18,7 @@ public class NegotiationService : INegotiationService  //ToDo: update interface
     {
         _negotiationState = new NegotiationState(
             request.InitiatorId,
-            request.ReceiverId,
+            Guid.Empty,
             _negotiationId,
             null,
             request.CardTypesWanted

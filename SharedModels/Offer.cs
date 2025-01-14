@@ -2,12 +2,13 @@
 
 public record Offer
 {
-    public Guid InitiatorId;
-    public Guid ReceiverId;
+    public Guid InitiatorId {get;set;}
+    /* public Guid ReceiverId; */
     public Guid NegotiationId = Guid.NewGuid();
-    public List<Guid> OfferedCards;
-    public List<string> CardTypesWanted;
+    public List<Guid> OfferedCards{get;set;}
+    public List<string> CardTypesWanted{get;set;}
 
+    public Offer(){}
     public Offer(Guid initiatorId, List<Guid> offeredCards, List<string> cardTypesWanted)
     {
         InitiatorId = initiatorId;
@@ -15,6 +16,7 @@ public record Offer
         CardTypesWanted = cardTypesWanted;
     }
 }
+
 public record Accept
 {
     public Guid InitiatorId;

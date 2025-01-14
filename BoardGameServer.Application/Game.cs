@@ -27,6 +27,7 @@ public class Game : IPlayerActions, IRegisterActions
     private readonly EloCalculator _eloCalculator;
 
     public readonly List<Offer> TradingArea;
+    public DateTime LastStateChange; 
 
     public Game(EloCalculator eloCalculator)
     {
@@ -63,6 +64,7 @@ public class Game : IPlayerActions, IRegisterActions
             lastPlayer.NextPlayer = player;
         }
         Players.Add(player);
+        _eloCalculator.ScoreRepository.NewPlayer(name);
 
         return player.Id;
     }
@@ -135,6 +137,7 @@ public class Game : IPlayerActions, IRegisterActions
             p.NextPlayer.PositionFromStarting = p.PositionFromStarting + 1;
             p = p.NextPlayer;
         }
+        LastStateChange = DateTime.Now;
     }
 
     public void Plant(Guid field)
@@ -182,7 +185,22 @@ public class Game : IPlayerActions, IRegisterActions
 
     public void RequestTrade(Offer offer)
     {
-        TradingArea.Add(offer);
+        if(offer.CardTypesWanted == null)
+        {
+            offer.CardTypesWanted = new List<string>();
+        }
+        if(offer.OfferedCards == null)
+        {
+            offer.OfferedCards = new List<Guid>();
+        }
+        if (!TradingArea.Any(already => already.InitiatorId == offer.InitiatorId && ListEquals(already.OfferedCards, offer.OfferedCards) && ListEquals(already.CardTypesWanted, offer.CardTypesWanted)))
+        {
+            TradingArea.Add(offer);
+         }
+    }
+    private bool ListEquals<T>(IEnumerable<T> l1, IEnumerable<T> l2)
+    {
+        return l1.All(elem => l2.Contains(elem) && l2.All(elem => l1.Contains(elem)));
     }
 
     public void AcceptTrade(Player player, List<Guid> offeredCards, List<Guid> recievedCards)
@@ -265,13 +283,18 @@ public class Game : IPlayerActions, IRegisterActions
         if (CurrentPlayer.DrawnCards.Count() == 0 &&
                 Players.All(player => player.TradedCards.Count() == 0))
         {
+            Console.WriteLine("Vi går videre");
             GoToPlantingPhase();
         }
-
+        else
+        {
+            Console.WriteLine("Vi går videre");
+        }
     }
 
     void GoToTradingPhase()
     {
+        LastStateChange = DateTime.Now;
         CurrentPhase = Phase.Trading;
         for(int i = 0; i<2; i++)
         {
@@ -283,9 +306,11 @@ public class Game : IPlayerActions, IRegisterActions
         }
 
     }
+
     public void GoToPlantingPhase()
     {
         
+        LastStateChange = DateTime.Now;
         for(int i = 0; i<3; i++)
         {
             var card = DrawCard();
@@ -313,8 +338,10 @@ public class Game : IPlayerActions, IRegisterActions
         }
 
     }
+
     public void GoToTradePlanting()
     {
+        LastStateChange = DateTime.Now;
         CurrentPhase = Phase.TradePlanting;
     }
 
@@ -330,7 +357,7 @@ public class Game : IPlayerActions, IRegisterActions
         catch(InvalidOperationException e)
         {
             NumberOfDeckTurns++;
-            if (NumberOfDeckTurns < 2)
+            if (NumberOfDeckTurns > 2)
             {
                 GameEnded = true;
             }
@@ -341,6 +368,98 @@ public class Game : IPlayerActions, IRegisterActions
             }
         }
         return card;
+    }
+
+    // 
+    public void CheckForTimeout()
+    {
+        if (CurrentState != State.Playing)
+        {
+            return;
+        }
+        var now = DateTime.Now;
+        Console.WriteLine(now-LastStateChange);
+        if((now - LastStateChange) < TimeSpan.FromMinutes(2))
+        {
+            // vi er innenfor makstid, fortsett som vanlig
+            return ;
+        }
+
+
+        switch (CurrentPhase)
+        {
+            case Phase.Planting:
+            case Phase.PlantingOptional:
+                RemovePlayerFromGame(CurrentPlayer);
+                CurrentPlayer = CurrentPlayer.NextPlayer;
+                CurrentPhase = Phase.Planting;
+                break;
+
+            case Phase.Trading:
+                //Vi straffer ikke en spiller for å ikke ende trading på tiden
+                //Kunne sikkert om vi vil være strenge
+                GoToTradePlanting();
+                break;
+            case Phase.TradePlanting:
+                //Remove all players who have cards that aren't planted
+                var players = Players.Where(p=> p.TradedCards.Any() || p.DrawnCards.Any());
+                foreach(Player player in players)
+                {
+                    RemovePlayerFromGame(player);
+                }
+                //Vi bruker ikke metoden for å gå til planting for da trekker feil
+                //spiller kort
+                CurrentPhase = Phase.Planting;
+                CurrentPlayer = CurrentPlayer.NextPlayer;
+                break;
+            default:
+                break;
+
+        }
+
+    }
+
+    /// <summary>
+    /// Gjør slik at spilleren ikke lenger er i neste spiller rotasjonen (Det blir ikke
+    /// denne spillerens tur igjen, 
+    /// og kortene spilleren har, returneres til discard pilen
+    /// </summary>
+    /// <param name="player"></param>
+    /// <returns></returns>
+    public void RemovePlayerFromGame(Player player)
+    {
+        var forrigeSpiller = player;
+        while(forrigeSpiller.NextPlayer != player)
+        {
+            forrigeSpiller = forrigeSpiller.NextPlayer;
+        }
+        //Her må vi gjøre noe om det bare er en spiller igjen
+        forrigeSpiller.NextPlayer = player.NextPlayer;
+        foreach(var field in player.Fields)
+        {
+            foreach(var card in field.Value)
+            {
+                Discard.Push(card);
+            }
+            field.Value.Clear();
+        }
+        foreach(var card in player.Hand)
+        {
+            Discard.Push(card);
+        }
+        player.Hand.Clear();
+
+        foreach(var card in player.TradedCards)
+        {
+            Discard.Push(card);
+        }
+        player.TradedCards.Clear();
+        foreach(var card in player.DrawnCards)
+        {
+            Discard.Push(card);
+        }
+        player.DrawnCards.Clear();
+
     }
 
     //Tar alt fra discard pilen, stokker om innholdet, og legger det i decken
@@ -356,21 +475,18 @@ public class Game : IPlayerActions, IRegisterActions
         random.Shuffle(list);
 
         for(int i = 0; i < discards; i++)
-        {
-            Deck.Push(list[i]);
+        { Deck.Push(list[i]);
         }
     }
-
-    //Etter denne er kallt, skal feltet være tømt, få penger utifra kortene de har
+//Etter denne er kallt, skal feltet være tømt, få penger utifra kortene de har
     //høstet, og om det er noen, skal kortene bli lagt i discard pilen
     public void HarvestField(Player player, Guid field)
     {
         int count = player.Fields[field].Count();   
         if (count == 0)
         {
-            return;
-        }
-        else
+
+            return; } else
         {
             var card = player.Fields[field].First();
             int coins = card.Harvest(count);

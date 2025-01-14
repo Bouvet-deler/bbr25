@@ -48,18 +48,18 @@ public static class GamePlayingEndpoints
         /*     return op; */
         /* }); */
 
-        group.MapPost("/plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapPost("/plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame();
             Player p = game.Players.Where(c => c.Id == playerId).First();
-            validationRules.PlantingPhaseValidation(game, p, field, errors);
+            validationRules.PlantingPhaseValidation(game, p, fieldId, errors);
             if (errors.Any())
             {
                 return TypedResults.ValidationProblem(errors);
             }
-            game.Plant(field);
+            game.Plant(fieldId);
             return TypedResults.Ok();
         })
         .WithOpenApi(op =>
@@ -110,7 +110,7 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/trade-plant", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (Guid playerId, Guid cardId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapPost("/trade-plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid cardId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
@@ -119,12 +119,13 @@ public static class GamePlayingEndpoints
             validationRules.TradePlantingPhaseValidation(game, p,cardId, fieldId, errors);
             if (errors.Any()) 
             {
+            Console.WriteLine("Validation");
                 return TypedResults.ValidationProblem(errors);
             }
 
             Card card = p.DrawnCards.Where(c=> c.Id == cardId).Union(p.TradedCards.Where(c=>c.Id == cardId)).Single();
             game.PlantTrade(p, card, fieldId);
-            return TypedResults.BadRequest();
+            return TypedResults.Ok();
         })
         .WithOpenApi(op =>
         {
@@ -133,17 +134,17 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/harvest-field", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapPost("/harvest-field", static async Task<Results<Ok, ValidationProblem>> (Guid playerId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame();
             Console.WriteLine(game.Players.FirstOrDefault().Id);
             Player p = game.Players.Where(c => c.Id == playerId).First();
-            validationRules.HarvestFieldValidation(game, p, field, errors);
+            validationRules.HarvestFieldValidation(game, p, fieldId, errors);
             if (errors.Any()) {
                 return TypedResults.ValidationProblem(errors);
             }
-            game.HarvestField(p, field);
+            game.HarvestField(p, fieldId);
             return TypedResults.Ok();
         })
         .WithOpenApi(op =>

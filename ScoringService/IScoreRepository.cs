@@ -6,6 +6,7 @@ namespace ScoringService
         public int GetScoreByName(string name);
         public void UpdateScore(string name, int newScore);
         public IDictionary<string, int> GetScores();
+        public void NewPlayer(string name);
     }
 
     public class ScoreRepository : IScoreRepository
