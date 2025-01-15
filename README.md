@@ -128,6 +128,9 @@ Teknisk regel 2: Du kan bare spille når det er din tur
 
 Teknisk regel 3: du kan bare utføre en handling du er i den fasen handlingen hører til
 Teknisk regel 4: Du kan kun plante i felt som eksisterer
+## Offisielle regler: 
+Merk reglene i det offisielle spillet for forhandlinger er noe forskjellig i denne versjon. Her er det hele tiden er gjeldende spiller som foreslår bytter de andre kan godta eller avstå fra. Andre spillere kan ikke foreslå andre bytter. (Feel free to implement.)
+[Offisielle Bohnanza regler (PDF)](https://www.riograndegames.com/wp-content/uploads/2013/02/Bohnanza-Rules.pdf)
 
 ## Bilder
 ![Brett for en spiller](https://github.com/kaifriis/BoardGameServerSimple/blob/master/regler.jpg)
