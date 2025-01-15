@@ -154,11 +154,15 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/request-trade", static async Task<Results<Ok, NotFound<ErrorResponse>>> (Guid playerId, [FromBody]Offer offer, [FromServices] GameService gameService) =>
+        group.MapPost("/request-trade", static async Task<Results<Ok, NotFound<ErrorResponse>>> (Guid playerId, [FromBody]OfferDto offer, [FromServices] GameService gameService) =>
         {
-
             var game = gameService.GetCurrentGame();
-            game.RequestTrade(offer);
+            //finn kortene som skal med i offer
+
+            Player p = game.Players.Where(c => c.Id == playerId).First();
+            var cards = p.DrawnCards.Union(p.Hand).Where(c=> offer.OfferedCards.Any(c1 => c1 == c.Id)).ToList();
+            var realOffer = new Offer(playerId, cards, offer.CardTypesWanted);
+            game.RequestTrade(realOffer);
             return TypedResults.Ok();
         })
         .WithOpenApi(op =>
@@ -168,22 +172,21 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        group.MapPost("/accept-trade", static async Task<Results<Ok, NotFound, ValidationProblem>> (Guid playerId, Accept accept, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
+        group.MapPost("/accept-trade", static async Task<Results<Ok, NotFound, ValidationProblem>> (Guid playerId, [FromBody]Accept accept, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
-
             var game = gameService.GetCurrentGame();
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             //Valid card offered?
             Player p = game.Players.Where(c => c.Id == playerId).First();
-            validationRules.AcceptTradeValidation(game, p, accept, errors);
+            var status = game.TradingArea.Single(offer => offer.NegotiationId == accept.NegotiationId);
+            validationRules.AcceptTradeValidation(game, p,status, accept, errors);
 
             if (errors.Any())
             {
                 return TypedResults.ValidationProblem(errors);
             }
 
-            var status = game.TradingArea.Single(offer => offer.NegotiationId == accept.NegotiationId);
-            game.AcceptTrade(p,status.OfferedCards, accept.Payment);
+            game.AcceptTrade(p,status.OfferedCards.Select(s=>s.Id).ToList(), accept.Payment);
             return TypedResults.Ok();
         })
         .WithOpenApi(op =>

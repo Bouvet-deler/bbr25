@@ -43,10 +43,10 @@ public class ValidationRules
         FieldIsPlayable(player,player.DrawnCards.Where(c => c.Id == card).Union(player.TradedCards.Where(c => c.Id == card)).Single() , field, errors);
     }
 
-    public void AcceptTradeValidation(Game game, Player player, Accept negotiationRequest, IDictionary<string, string[]> errors)
+    public void AcceptTradeValidation(Game game, Player player,Offer offer, Accept accept, IDictionary<string, string[]> errors)
     {
         IsInPlayingState(game, errors);
-        IsCurrentPlayer(game, player, errors);
+        OnePlayerIsCurrent(game,player, offer, accept, errors);
         IsInTradingPhase(game, errors);
     }
     public void RequestTradeValidation(Game game, Player player, Offer negotiationRequest, IDictionary<string, string[]> errors)
@@ -54,6 +54,13 @@ public class ValidationRules
         IsInPlayingState(game, errors);
         IsCurrentPlayer(game, player, errors);
         IsInTradingPhase(game, errors);
+    }
+    public void OnePlayerIsCurrent(Game game, Player player,Offer offer,  Accept accept, IDictionary<string, string[]> errors)
+    {
+        if (game.CurrentPlayer.Id != offer.InitiatorId && game.CurrentPlayer.Id != accept.ReceiverId)
+        {
+            errors["Spillregel N"] = ["Den aktive spilleren må være en del av et bytte"];
+        }
     }
 
     private void RuleOfBeanProtection(Game game, Player player, Guid field, IDictionary<string, string[]> errors)

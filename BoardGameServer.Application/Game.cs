@@ -44,26 +44,39 @@ public class Game : IPlayerActions, IRegisterActions
     public Guid Join(string name)
     {
         var player = new Player(name);
+        /* var firstPlayer = Players.FirstOrDefault(); */
+        /* if (firstPlayer == null) */
+        /* { */
+        /*     //Det er ingen andre spillere. Vi er vår egen neste */
+        /*     player.NextPlayer = player; */
+        /* } */
+        /* else */
+        /* { */
+        /*     //Den første spilleren i listen er den som skal spille etter oss */
+        /*     player.NextPlayer = firstPlayer; */
+        /* } */
+        /* var lastPlayer = Players.LastOrDefault(); */
+        /* //Er det ingen spillere, har vi håndtert spilleren vi setter inn nå i */
+        /* //forrige if */
+        /* if (lastPlayer != null) */
+        /* { */
+        /*     //Siste spiller er ikke lenger siste. */
+        /*     lastPlayer.NextPlayer = player; */
+        /* } */
+
         var firstPlayer = Players.FirstOrDefault();
-        if (firstPlayer == null)
+        if (firstPlayer != null)
         {
             //Det er ingen andre spillere. Vi er vår egen neste
-            player.NextPlayer = player;
-        }
-        else
-        {
-            //Den første spilleren i listen er den som skal spille etter oss
             player.NextPlayer = firstPlayer;
         }
-        var lastPlayer = Players.LastOrDefault();
-        //Er det ingen spillere, har vi håndtert spilleren vi setter inn nå i
-        //forrige if
-        if (lastPlayer != null)
-        {
-            //Siste spiller er ikke lenger siste.
-            lastPlayer.NextPlayer = player;
-        }
-        Players.Add(player);
+        Players.Insert(0, player);
+        
+        var last = Players.LastOrDefault();
+
+        last.NextPlayer = player;
+
+
         _eloCalculator.ScoreRepository.NewPlayer(name);
 
         return player.Id;
@@ -136,6 +149,7 @@ public class Game : IPlayerActions, IRegisterActions
         {
             p.NextPlayer.PositionFromStarting = p.PositionFromStarting + 1;
             p = p.NextPlayer;
+            Thread.Sleep(1000);
         }
         LastStateChange = DateTime.Now;
     }
@@ -191,7 +205,7 @@ public class Game : IPlayerActions, IRegisterActions
         }
         if(offer.OfferedCards == null)
         {
-            offer.OfferedCards = new List<Guid>();
+            offer.OfferedCards = new List<Card>();
         }
         if (!TradingArea.Any(already => already.InitiatorId == offer.InitiatorId && ListEquals(already.OfferedCards, offer.OfferedCards) && ListEquals(already.CardTypesWanted, offer.CardTypesWanted)))
         {
@@ -283,12 +297,10 @@ public class Game : IPlayerActions, IRegisterActions
         if (CurrentPlayer.DrawnCards.Count() == 0 &&
                 Players.All(player => player.TradedCards.Count() == 0))
         {
-            Console.WriteLine("Vi går videre");
             GoToPlantingPhase();
         }
         else
         {
-            Console.WriteLine("Vi går videre");
         }
     }
 
@@ -378,7 +390,6 @@ public class Game : IPlayerActions, IRegisterActions
             return;
         }
         var now = DateTime.Now;
-        Console.WriteLine(now-LastStateChange);
         if((now - LastStateChange) < TimeSpan.FromMinutes(2))
         {
             // vi er innenfor makstid, fortsett som vanlig
@@ -486,7 +497,9 @@ public class Game : IPlayerActions, IRegisterActions
         if (count == 0)
         {
 
-            return; } else
+            return; 
+        }
+        else
         {
             var card = player.Fields[field].First();
             int coins = card.Harvest(count);

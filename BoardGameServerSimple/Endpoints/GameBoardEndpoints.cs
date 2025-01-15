@@ -2,6 +2,7 @@
 using BoardGameServer.Application.Services;
 using SharedModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 namespace BoardGameServerSimple.Endpoints;
 
 public static class GameBoardEndpoints
@@ -32,7 +33,7 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapPost("/join", ( string name, [FromServices] GameService gameService) =>
+        group.MapGet("/join", (string name, [FromServices] GameService gameService) =>
         {
             var game = gameService.GetCurrentGame();
             return TypedResults.Ok(game.Join(name));
@@ -44,7 +45,7 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapPost("/start", ([FromServices] GameService gameService) =>
+        group.MapGet("/start", ([FromServices] GameService gameService) =>
         {
             var game = gameService.GetCurrentGame();
             game.StartGame();
@@ -57,7 +58,7 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapPost("/stop", () =>
+        group.MapGet("/stop", () =>
         {
             return TypedResults.Ok();
         })
@@ -82,7 +83,7 @@ public static class GameBoardEndpoints
             AvailableTrades = game.TradingArea.Select(negotiaton => new
             {
                 negotiaton.InitiatorId,
-                negotiaton.OfferedCards,
+                OfferedCards = negotiaton.OfferedCards.Select(s=> s.Type).ToList(),
                 negotiaton.CardTypesWanted
             }),
             DiscardPile = game.Discard,

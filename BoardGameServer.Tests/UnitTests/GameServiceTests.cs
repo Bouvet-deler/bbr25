@@ -135,9 +135,9 @@ public class GameServiceTests
         game.CurrentPlayer = p2;
         game.CurrentPhase = Phase.Trading;
         Card offeredCard = p2.Hand.Where(c => c.Type == "ChiliBean").Last();
-        Offer offer = new Offer(game.CurrentPlayer.Id, new List<Guid> { offeredCard.Id }, new List<string>());
+        Offer offer = new Offer(game.CurrentPlayer.Id, new List<Card> { offeredCard }, new List<string>());
         _negotiationService.StartNegotiation(offer);
-        game.AcceptTrade(p1, offer.OfferedCards, new List<Guid>());
+        game.AcceptTrade(p1, offer.OfferedCards.Select(s=>s.Id).ToList(), new List<Guid>());
 
         Assert.Contains(offeredCard, p1.TradedCards);
         Assert.False(p2.Hand.Contains(offeredCard));
