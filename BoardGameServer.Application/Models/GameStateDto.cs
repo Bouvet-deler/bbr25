@@ -17,7 +17,7 @@ public class GameStateDto
 public class TradeDto
 {
     public Guid InitiatorId { get; set; }
-    public List<Guid> OfferedCards { get; set; }
+    public List<string> OfferedCards { get; set; }
     public List<string> CardTypesWanted { get; set; }
 }
 
