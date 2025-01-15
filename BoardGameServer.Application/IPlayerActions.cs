@@ -1,3 +1,4 @@
+using BoardGameServer.Application.Models;
 using SharedModels;
 
 namespace BoardGameServer.Application;

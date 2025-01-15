@@ -1,7 +1,7 @@
 using ScoringService;
-using Negotiator;
 using SharedModels;
 using Negotiator.Models;
+using BoardGameServer.Application.Models;
 
 namespace BoardGameServer.Application;
 
@@ -508,6 +508,42 @@ public class Game : IPlayerActions, IRegisterActions
             .ToList<string>();
 
         _eloCalculator.ScoreGame(players);
+    }
+
+    public static GameStateDto CreateGameState(Game game, Queue<Card> hand)
+    {
+        return new GameStateDto
+        {
+            CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
+            CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
+            CurrentState = StateUtil.GetDescription(game.CurrentState),
+            PhaseTimeLeft = game.LastStateChange.AddMinutes(2) - DateTime.Now,
+
+            Deck = game.Deck.Count(),
+            AvailableTrades = game.TradingArea.Select(negotiaton => new TradeDto
+            {
+                InitiatorId = negotiaton.InitiatorId,
+                OfferedCards = negotiaton.OfferedCards,
+                CardTypesWanted = negotiaton.CardTypesWanted
+            }),
+            DiscardPile = game.Discard,
+            Players = game.Players
+            ?.Select(p => new PlayerDto
+            {
+                Name = p.Name,
+                Coins = p.Coins,
+                Fields = p.Fields.Select(kv => new FieldDto { Key = kv.Key, Card = kv.Value.Select(c => new CardDto { Id = c.Id, Type = c.Type }) }),
+                Hand = p.Hand.Count(),
+                DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type }),
+                TradedCards = p.TradedCards.Select(c => new CardDto { Id = c.Id, Type = c.Type })
+            })?.ToList(),
+            YourHand = hand.Select(c => new HandCardDto
+            {
+                FirstCard = hand.Peek() == c, //Bare for å gjøre det ekstra tydlig hvilket kort de kan spille
+                Id = c.Id,
+                Type = c.Type
+            })
+        };
     }
 }
 

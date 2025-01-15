@@ -1,4 +1,4 @@
-namespace BoardGameServer.Application;
+namespace BoardGameServer.Application.Models;
 public enum Phase
 {
     Planting,
