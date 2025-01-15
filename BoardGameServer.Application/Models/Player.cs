@@ -1,11 +1,11 @@
 using SharedModels;
 
-namespace BoardGameServer.Application;
+namespace BoardGameServer.Application.Models;
 
 public class Player
 {
     // Id til spillere.
-    public Guid Id; 
+    public Guid Id;
 
     //Spiller som skal spille etter denne
     public Player NextPlayer;
@@ -15,7 +15,7 @@ public class Player
 
     //Beholder for kortene som man har byttet til seg ila trading fasen
     public List<Card> TradedCards = new List<Card>();
-    
+
     //Kors som ble trukket i starten av byttefasen
     public List<Card> DrawnCards = new List<Card>();
 
