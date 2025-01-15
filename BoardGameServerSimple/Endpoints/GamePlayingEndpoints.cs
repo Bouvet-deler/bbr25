@@ -1,9 +1,9 @@
-﻿using BoardGameServer.Application;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
 using SharedModels;
 using BoardGameServer.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using Negotiator.Models;
+using BoardGameServer.Application.Models;
 
 namespace BoardGameServerSimple.Endpoints;
 
@@ -31,22 +31,6 @@ public static class GamePlayingEndpoints
             return op;
         });
 
-        //Hva var dette?
-        /* group.MapGet("/{id}", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid player, Guid field, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) => */
-        /* { */
-        /*     IDictionary<string, string[]> errors = new Dictionary<string, string[]>(); */
-        /*     var game = gameService.GetCurrentGame(); //Or with Id? */
-        /*     Player p = game.Players.Where(c => c.Id == player).First(); */
-        /*     game.Plant(field); */
-        /*     game.HarvestField(p, field); */
-        /*     return TypedResults.Ok(); */
-        /* }) */
-        /* .WithOpenApi(op => */
-        /* { */
-        /*     op.Summary = "Recieves a field from player to be planted"; */
-        /*     op.Description = "This card needs to be validated against the state of the player to confirm that the player actually possesses that card."; */
-        /*     return op; */
-        /* }); */
 
         group.MapGet("/plant", static async Task<Results<Ok, BadRequest, ValidationProblem>> (Guid playerId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {

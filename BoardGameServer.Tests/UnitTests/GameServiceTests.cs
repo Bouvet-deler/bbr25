@@ -7,6 +7,7 @@ using SharedModels;
 using Negotiator;
 using FakeItEasy;
 using ScoringService;
+using BoardGameServer.Application.Models;
 
 namespace BoardGameServer.Tests.UnitTests;
 

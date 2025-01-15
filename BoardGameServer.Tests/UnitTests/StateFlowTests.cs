@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using SharedModels;
 using ScoringService;
 using FakeItEasy;
+using BoardGameServer.Application.Models;
 
 namespace BoardGameServer.Tests.UnitTests;
 

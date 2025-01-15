@@ -1,4 +1,5 @@
 using BoardGameServer.Application;
+using BoardGameServer.Application.Models;
 using SharedModels;
 
 public class ValidationRules

@@ -2,8 +2,11 @@
 using BoardGameServer.Application.Services;
 using SharedModels;
 using Microsoft.AspNetCore.Mvc;
+<<<<<<< HEAD
 using System.Text.Json;
+=======
 using BoardGameServer.Application.Models;
+>>>>>>> 441acfa20c452c1734dc8c952edbb8a4e51cd5b4
 namespace BoardGameServerSimple.Endpoints;
 
 public static class GameBoardEndpoints
@@ -34,7 +37,11 @@ public static class GameBoardEndpoints
             return op;
         });
 
+<<<<<<< HEAD
         group.MapGet("/join", (string name, [FromServices] GameService gameService) =>
+=======
+        group.MapPost("/join", (string name, [FromServices] GameService gameService) =>
+>>>>>>> 441acfa20c452c1734dc8c952edbb8a4e51cd5b4
         {
             var game = gameService.GetCurrentGame();
             return TypedResults.Ok(game.Join(name));
@@ -71,4 +78,42 @@ public static class GameBoardEndpoints
         });
         return routes;
     }
+<<<<<<< HEAD
+    static object CreateGameState(Game game, Queue<Card> hand)
+    {
+        return new
+        {
+            CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
+            CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
+            CurrentState = StateUtil.GetDescription(game.CurrentState),
+            PhaseTimeLeft =  game.LastStateChange.AddMinutes(2) - DateTime.Now,
+
+            Deck = game.Deck.Count(),
+            AvailableTrades = game.TradingArea.Select(negotiaton => new
+            {
+                negotiaton.InitiatorId,
+                OfferedCards = negotiaton.OfferedCards.Select(s=> s.Type).ToList(),
+                negotiaton.CardTypesWanted
+            }),
+            DiscardPile = game.Discard,
+            Players = game.Players
+            ?.Select(p => new
+            {
+                p.Name,
+                p.Coins,
+                Fields = p.Fields.Select(kv => new { kv.Key, Card = kv.Value.Select(c => new { c.Id, c.Type }) }),
+                Hand = p.Hand.Count(),
+                DrawnCards = p.DrawnCards.Select(c => new { c.Id, c.Type }),
+                TradedCards = p.TradedCards.Select(c => new { c.Id, c.Type })
+            })?.ToList(),
+            YourHand = hand.Select(c => new
+            {
+                FirstCard = hand.Peek() == c, //Bare for å gjøre det ekstra tydlig hvilket kort de kan spille
+                c.Id,
+                c.Type
+            })
+        };
+    }
+=======
+>>>>>>> 441acfa20c452c1734dc8c952edbb8a4e51cd5b4
 }
