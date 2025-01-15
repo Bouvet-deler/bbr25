@@ -11,7 +11,28 @@ public static class GameBoardEndpoints
     public static IEndpointRouteBuilder MapGameBoardEndpoints(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("/api/game");
-
+        group.MapGet("/all", (string? playerId, [FromServices] GameService gameService) =>
+        {
+            Guid playerKey;
+            var game = gameService.GetCurrentGame();
+            Queue<Card> hand = new Queue<Card>(); ;
+            //Foreløpig gjøres dette bare her
+            game.CheckForTimeout();
+            if (Guid.TryParse(playerId, out playerKey))
+            {
+                var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
+                if (p != null) hand = p.Hand;
+            }
+            var result = Game.CreateGameState(game, hand);
+            var retur = new List<GameStateDto>{ result, result, result, result,result };
+            return TypedResults.Ok<List<GameStateDto>>(retur);
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Gets the state of the game";
+            op.Description = "bruk din playerKey for å få se hånden din";
+            return op;
+        });
         group.MapGet("/", (string? playerId, [FromServices] GameService gameService) =>
         {
             Guid playerKey;
