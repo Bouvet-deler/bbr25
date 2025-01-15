@@ -43,6 +43,7 @@ public class Game : IPlayerActions, IRegisterActions
     //TODO registrer spillerene i eloRatingen
     public Guid Join(string name)
     {
+        
         var player = new Player(name);
         /* var firstPlayer = Players.FirstOrDefault(); */
         /* if (firstPlayer == null) */
@@ -77,7 +78,10 @@ public class Game : IPlayerActions, IRegisterActions
         last.NextPlayer = player;
 
 
-        _eloCalculator.ScoreRepository.NewPlayer(name);
+        if (!_eloCalculator.ScoreRepository.GetScores().Any(kv => kv.Key == name))
+        {
+            _eloCalculator.ScoreRepository.NewPlayer(name);
+        }
 
         return player.Id;
     }

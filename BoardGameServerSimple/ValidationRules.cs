@@ -7,7 +7,14 @@ public class ValidationRules
 
     public ValidationRules()
     {}
-
+    public void StartGameValidation(Game game,IDictionary<string, string[]> errors)
+    {
+       NotAlreadyStarted(game,errors); 
+    }
+    public void JoinGameValidation(Game game,string name,IDictionary<string, string[]> errors)
+    {
+       NotAlreadyJoined(game,name,errors); 
+    }
     public void EndPlantingValidation(Game game, Player player, IDictionary<string, string[]> errors)
     {
         IsCurrentPlayer(game, player, errors);
@@ -56,6 +63,21 @@ public class ValidationRules
         IsCurrentPlayer(game, player, errors);
         IsInTradingPhase(game, errors);
     }
+     public void NotAlreadyStarted(Game game,IDictionary<string, string[]> errors)
+    {
+        if (game.CurrentState != State.Registering)
+        {
+            errors["Teknisk regel"] = ["du kan bare starte spillet i registreringsfasen"];
+        }
+    }
+    public void NotAlreadyJoined(Game game,string name,IDictionary<string, string[]> errors)
+    {
+        if (game.Players.Any(kv => kv.Name == name))
+        {
+            errors["Teknisk regel"] = ["du kan bare joine spillet en gang"];
+        }
+    }
+
     public void OnePlayerIsCurrent(Game game, Player player,Offer offer,  Accept accept, IDictionary<string, string[]> errors)
     {
         if (game.CurrentPlayer.Id != offer.InitiatorId && game.CurrentPlayer.Id != accept.ReceiverId)

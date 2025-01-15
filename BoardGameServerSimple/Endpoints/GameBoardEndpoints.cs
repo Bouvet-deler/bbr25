@@ -4,6 +4,7 @@ using SharedModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using BoardGameServer.Application.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 namespace BoardGameServerSimple.Endpoints;
 
 public static class GameBoardEndpoints
@@ -55,9 +56,16 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapGet("/join", (string name, [FromServices] GameService gameService) =>
+        group.MapGet("/join", static async Task<Results<Ok<Guid>,ValidationProblem>>(string name, [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
+
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
+            validationRules.NotAlreadyJoined(game,name,errors);
+            if (errors.Any()) 
+            {
+                return TypedResults.ValidationProblem(errors);
+            }         
             return TypedResults.Ok(game.Join(name));
         })
         .WithOpenApi(op =>
@@ -67,9 +75,16 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapGet("/start", ([FromServices] GameService gameService) =>
+        group.MapGet("/start", static async Task<Results<Ok,ValidationProblem>>( [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
+
+            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
+            validationRules.NotAlreadyStarted(game,errors);
+            if (errors.Any()) 
+            {
+                return TypedResults.ValidationProblem(errors);
+            }         
             game.StartGame();
             return TypedResults.Ok();
         })
