@@ -5,9 +5,9 @@ public class GameStateDto
 {
     public string CurrentPlayer { get; set; }
     public string CurrentPhase { get; set; }
-      public string CurrentState { get; set; }
-      public string Round { get; set; }
-    
+    public string CurrentState { get; set; }
+    public string Round { get; set; }
+
     public TimeSpan PhaseTimeLeft { get; set; }
     public int Deck { get; set; }
     public IEnumerable<TradeDto> AvailableTrades { get; set; }
@@ -44,14 +44,17 @@ public class CardDto
 {
     public Guid Id { get; set; }
     public string Type { get; set; }
+
+    public List<ExchangeMapEntry> ExchangeMap { get; set; }
 }
 
-public class HandCardDto
+public class ExchangeMapEntry
+{
+    public int CropSize { get; set; }
+    public int Value { get; set; }
+}
+
+public class HandCardDto : CardDto
 {
     public bool FirstCard { get; set; }
-    public Guid Id { get; set; }
-    public string Type { get; set; }
 }
-
-
-

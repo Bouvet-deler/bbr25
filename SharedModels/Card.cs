@@ -6,7 +6,7 @@ public class Card
     public Guid Id;
     public string Type;
 
-    List<Tuple<int, int>> ExchangeMap;
+    public readonly List<Tuple<int, int>> ExchangeMap;
     public int Harvest(int numberOfCards)
     {
         foreach (var item in ExchangeMap)

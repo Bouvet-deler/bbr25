@@ -516,34 +516,33 @@ public class Game : IPlayerActions, IRegisterActions
             CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
-            Round = game.NumberOfDeckTurns + 1;
             PhaseTimeLeft = game.LastStateChange.AddMinutes(2) - DateTime.Now,
 
             Deck = game.Deck.Count(),
             AvailableTrades = game.TradingArea.Select(negotiaton => new TradeDto
             {
                 InitiatorId = negotiaton.InitiatorId,
-                NegotiationId = negotiaton.NegotiationId,
                 OfferedCards = negotiaton.OfferedCards.Select(s => s.Type).ToList(),
                 CardTypesWanted = negotiaton.CardTypesWanted
             }),
             DiscardPile = game.Discard,
             Players = game.Players
-            ?.Select(p => new PlayerDto
-            {
-                Name = p.Name,
-                Coins = p.Coins,
-                Fields = p.Fields.Select(kv => new FieldDto { Key = kv.Key, Card = kv.Value.Select(c => new CardDto { Id = c.Id, Type = c.Type }) }),
-                Hand = p.Hand.Count(),
-                DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type }),
-                TradedCards = p.TradedCards.Select(c => new CardDto { Id = c.Id, Type = c.Type })
-            })?.ToList(),
+        ?.Select(p => new PlayerDto
+        {
+            Name = p.Name,
+            Coins = p.Coins,
+            Fields = p.Fields.Select(kv => new FieldDto { Key = kv.Key, Card = kv.Value.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }) }),
+            Hand = p.Hand.Count(),
+            DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }),
+            TradedCards = p.TradedCards.Select(c => new CardDto { Id = c.Id, Type = c.Type })
+        })?.ToList(),
             YourHand = hand.Select(c => new HandCardDto
             {
                 FirstCard = hand.Peek() == c, //Bare for å gjøre det ekstra tydlig hvilket kort de kan spille
                 Id = c.Id,
-                Type = c.Type
-            })
+                Type = c.Type,
+                ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList(),
+            }),
         };
     }
 }
