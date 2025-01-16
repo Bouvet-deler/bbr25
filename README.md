@@ -15,6 +15,7 @@ Så lenge du har kort i TradedCards,
 Spillet starter med CurrentState = "Registering".
 Da kan du registrere klienten din som en spiller i spillet, med endepunktet
 api/game/join
+
 **Merk:** Hvis du får Bad request på denne kan det hende at noen andre har registrert en spiller med samme navn. Sjekk feilmelding. 
 
 Når har gjort det, må du vente på at tilstanden i CurrentState blir "Playing", og at
