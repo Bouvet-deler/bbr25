@@ -516,7 +516,7 @@ public class Game : IPlayerActions, IRegisterActions
             CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
-            Round = game.NumberOfDeckTurns + 1;
+            Round = game.NumberOfDeckTurns + 1,
             PhaseTimeLeft = game.LastStateChange.AddMinutes(2) - DateTime.Now,
 
             Deck = game.Deck.Count(),
