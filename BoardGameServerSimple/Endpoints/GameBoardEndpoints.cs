@@ -16,6 +16,7 @@ public static class GameBoardEndpoints
         {
             Guid playerKey;
             var game = gameService.GetCurrentGame();
+            game.Lock.Enter();
             Queue<Card> hand = new Queue<Card>(); ;
             //Foreløpig gjøres dette bare her
             game.CheckForTimeout();
@@ -26,6 +27,7 @@ public static class GameBoardEndpoints
             }
             var result = Game.CreateGameState(game, hand);
             var retur = new List<GameStateDto>{ result, result, result, result,result };
+            game.Lock.Exit();
             return TypedResults.Ok<List<GameStateDto>>(retur);
         })
         .WithOpenApi(op =>
@@ -59,13 +61,16 @@ public static class GameBoardEndpoints
         group.MapGet("/join", static async Task<Results<Ok<Guid>,ValidationProblem>>(string name, [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
+            game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             validationRules.NotAlreadyJoined(game,name,errors);
             if (errors.Any()) 
             {
+            game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
             }         
+            game.Lock.Exit();
             return TypedResults.Ok(game.Join(name));
         })
         .WithOpenApi(op =>
@@ -78,14 +83,16 @@ public static class GameBoardEndpoints
         group.MapGet("/start", static async Task<Results<Ok,ValidationProblem>>( [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
+            game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             validationRules.NotAlreadyStarted(game,errors);
             if (errors.Any()) 
             {
+            game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
-            }         
-            game.StartGame();
+            }         game.StartGame();
+            game.Lock.Exit();
             return TypedResults.Ok();
         })
         .WithOpenApi(op =>

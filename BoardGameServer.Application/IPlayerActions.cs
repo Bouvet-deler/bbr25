@@ -9,7 +9,7 @@ public interface IPlayerActions
     void EndPlanting();
 
     void RequestTrade(Offer offer);
-    void AcceptTrade(Player player,List<Guid> offeredCards, List<Guid> recievedCards);
+    void AcceptTrade(Player initiator,Player player,List<Guid> offeredCards, List<Guid> recievedCards);
     void EndTrading();
     void PlantTrade(Player player, Card card, Guid fieldId);
 }

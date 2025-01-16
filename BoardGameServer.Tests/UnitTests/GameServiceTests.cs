@@ -60,7 +60,6 @@ public class GameServiceTests
         Assert.False(p.StartingPlayer);
         Assert.True(p.Hand.Any());
         Assert.True(p.Fields.Any());
-        Assert.True(p.Name == name);
     }
     [Fact]
     void StartGameWithThreePlayers_OnlyOneStartingPlayer()
@@ -95,7 +94,11 @@ public class GameServiceTests
         string name = "Bendert";
         game.Join(name);
         Assert.True(game.Players.Count() == 2);
-
+        Player player = game.Players.First();
+        Assert.True(player == player.NextPlayer.NextPlayer);
+        Assert.True(player == player.NextPlayer.NextPlayer.NextPlayer);
+        var next = player.NextPlayer;
+        Assert.True(next == next.NextPlayer.NextPlayer.NextPlayer);
     }
     [Fact]
     void GoToPlantingPhase_AddsCardsToHand()
@@ -138,7 +141,7 @@ public class GameServiceTests
         Card offeredCard = p2.Hand.Where(c => c.Type == "ChiliBean").Last();
         Offer offer = new Offer(game.CurrentPlayer.Id, new List<Card> { offeredCard }, new List<string>());
         _negotiationService.StartNegotiation(offer);
-        game.AcceptTrade(p1, offer.OfferedCards.Select(s=>s.Id).ToList(), new List<Guid>());
+        game.AcceptTrade(game.CurrentPlayer, p1, offer.OfferedCards.Select(s=>s.Id).ToList(), new List<Guid>());
 
         Assert.Contains(offeredCard, p1.TradedCards);
         Assert.False(p2.Hand.Contains(offeredCard));

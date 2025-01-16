@@ -3,7 +3,7 @@
 public record Offer
 {
     public Guid InitiatorId {get;set;}
-    public Guid InitiatorName;
+    public Guid InitiatorName {get;set;}
     /* public Guid ReceiverId; */
     public Guid NegotiationId = Guid.NewGuid();
     public List<Card> OfferedCards{get;set;}
@@ -27,11 +27,12 @@ public record OfferDto
 
 public record Accept
 {
-    public Guid InitiatorId;
-    public Guid ReceiverId;
-    public Guid NegotiationId;
-    public List<Guid> Payment;
+    public Guid NegotiationId{get;set;}
+    public List<Guid> Payment{get;set;}
 
+    public Accept()
+    {
+    }
     public Accept(Guid initiatorId, Guid receiverId, Guid negotiationId, List<Guid> payment)
     {
         NegotiationId = negotiationId;

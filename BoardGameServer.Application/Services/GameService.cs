@@ -6,6 +6,7 @@ namespace BoardGameServer.Application.Services
 {
     public class GameService
     {
+        Lock _lock = new Lock();
         private readonly Game _game;
 
         public GameService(EloCalculator elocalculator)
@@ -15,6 +16,9 @@ namespace BoardGameServer.Application.Services
 
         public Game GetCurrentGame()
         {
+            lock(_lock)
+            {
+            }
             return _game;
         }
 

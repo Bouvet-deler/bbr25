@@ -7,6 +7,7 @@ public class ValidationRules
 
     public ValidationRules()
     {}
+
     public void StartGameValidation(Game game,IDictionary<string, string[]> errors)
     {
        NotAlreadyStarted(game,errors); 
@@ -54,8 +55,8 @@ public class ValidationRules
     public void AcceptTradeValidation(Game game, Player player,Offer offer, Accept accept, IDictionary<string, string[]> errors)
     {
         IsInPlayingState(game, errors);
-        OnePlayerIsCurrent(game,player, offer, accept, errors);
         IsInTradingPhase(game, errors);
+        OnePlayerIsCurrent(game,player, offer, accept, errors);
     }
     public void RequestTradeValidation(Game game, Player player, Offer negotiationRequest, IDictionary<string, string[]> errors)
     {
@@ -80,7 +81,7 @@ public class ValidationRules
 
     public void OnePlayerIsCurrent(Game game, Player player,Offer offer,  Accept accept, IDictionary<string, string[]> errors)
     {
-        if (game.CurrentPlayer.Id != offer.InitiatorId && game.CurrentPlayer.Id != accept.ReceiverId)
+        if (game.CurrentPlayer.Id != offer.InitiatorId && game.CurrentPlayer.Id != player.Id)
         {
             errors["Spillregel N"] = ["Den aktive spilleren må være en del av et bytte"];
         }
@@ -97,7 +98,6 @@ public class ValidationRules
                 errors["Spillregel 14"] = ["Regel for bønners beskyttelse"];
             }
         }
-        
     }
 
     private static void IsInTradingPhase(Game game, IDictionary<string, string[]> errors)
@@ -144,11 +144,17 @@ public class ValidationRules
     {
         if(!(player.DrawnCards.Any(c => c.Id == card) || player.TradedCards.Any(c => c.Id == card)))
         {
-            Console.WriteLine("hei");
             errors["Teknisk regel 3"] = ["Kortet du forsøkte å plante finnes ikke i de trukkede eller byttede kortene"];
         } 
     }
 
+    private void  TradeExists(Game player, Guid tradeId, IDictionary<string, string[]> errors)
+    {
+        if(!player.TradingArea.Any(o=>o.NegotiationId == tradeId))
+        {
+            errors["Teknisk regel 4"] = ["Du har oppgitt et offer  som ikke eksisterer"];
+        }
+    }
     private void FieldIsValid(Player player, Guid field, IDictionary<string, string[]> errors)
     {
         if(!player.Fields.ContainsKey(field))
@@ -162,11 +168,9 @@ public class ValidationRules
         Card cardInField = player.Fields[field].FirstOrDefault();
         if (cardInField != null)
         {
-            Console.WriteLine("cardErIkkeNull");
             if(cardInField.Type != card.Type)
             {
 
-            Console.WriteLine("error");
             errors["Spillregel 1"] = ["Dette feltet har en annen bønnetype i seg"];
             }
         }

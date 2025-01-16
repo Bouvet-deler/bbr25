@@ -7,6 +7,7 @@ namespace BoardGameServer.Application;
 
 public class Game : IPlayerActions, IRegisterActions
 {
+    public Lock Lock = new Lock();
     private NegotiationState _negotiationState;
 
     public List<Player> Players;
@@ -27,7 +28,7 @@ public class Game : IPlayerActions, IRegisterActions
     private readonly EloCalculator _eloCalculator;
 
     public readonly List<Offer> TradingArea;
-    public DateTime LastStateChange; 
+    public DateTime LastStateChange = DateTime.Now; 
 
     public Game(EloCalculator eloCalculator)
     {
@@ -43,41 +44,8 @@ public class Game : IPlayerActions, IRegisterActions
     //TODO registrer spillerene i eloRatingen
     public Guid Join(string name)
     {
-        
         var player = new Player(name);
-        /* var firstPlayer = Players.FirstOrDefault(); */
-        /* if (firstPlayer == null) */
-        /* { */
-        /*     //Det er ingen andre spillere. Vi er vår egen neste */
-        /*     player.NextPlayer = player; */
-        /* } */
-        /* else */
-        /* { */
-        /*     //Den første spilleren i listen er den som skal spille etter oss */
-        /*     player.NextPlayer = firstPlayer; */
-        /* } */
-        /* var lastPlayer = Players.LastOrDefault(); */
-        /* //Er det ingen spillere, har vi håndtert spilleren vi setter inn nå i */
-        /* //forrige if */
-        /* if (lastPlayer != null) */
-        /* { */
-        /*     //Siste spiller er ikke lenger siste. */
-        /*     lastPlayer.NextPlayer = player; */
-        /* } */
-
-        var firstPlayer = Players.FirstOrDefault();
-        if (firstPlayer != null)
-        {
-            //Det er ingen andre spillere. Vi er vår egen neste
-            player.NextPlayer = firstPlayer;
-        }
-        Players.Insert(0, player);
-        
-        var last = Players.LastOrDefault();
-
-        last.NextPlayer = player;
-
-
+        Players.Add(player);
         if (!_eloCalculator.ScoreRepository.GetScores().Any(kv => kv.Key == name))
         {
             _eloCalculator.ScoreRepository.NewPlayer(name);
@@ -130,8 +98,22 @@ public class Game : IPlayerActions, IRegisterActions
         ShuffleDeck();
         //Deal hands
 
-        foreach (var item in Players)
+        for (var playerNum = 0;playerNum<Players.Count(); playerNum++)
         {
+            var item = Players[playerNum];
+            if (playerNum == 0)
+            {
+                item.StartingPlayer = true;
+            }
+            try{
+                item.NextPlayer = Players[playerNum+1];
+            }
+            catch(Exception e)
+            {
+                item.NextPlayer = Players[0];
+            }
+            item.PositionFromStarting = playerNum;
+
             for (int i = 0; i < 5; i++)
             {
                 Card card = Deck.Pop();
@@ -143,18 +125,9 @@ public class Game : IPlayerActions, IRegisterActions
                 item.Fields.Add(Guid.NewGuid(), new List<Card>());
             }
         }
-
-        Players.FirstOrDefault().StartingPlayer = true;
         CurrentState = State.Playing;
         CurrentPhase = Phase.Planting;
         CurrentPlayer = Players.Single(p=> p.StartingPlayer);
-        Player p = CurrentPlayer;
-        while (p.NextPlayer != CurrentPlayer)
-        {
-            p.NextPlayer.PositionFromStarting = p.PositionFromStarting + 1;
-            p = p.NextPlayer;
-            Thread.Sleep(1000);
-        }
         LastStateChange = DateTime.Now;
     }
 
@@ -170,6 +143,7 @@ public class Game : IPlayerActions, IRegisterActions
                 if (CurrentPlayer.Hand.Count() > 0)
                 {
                     CurrentPhase = Phase.PlantingOptional;
+                    LastStateChange = DateTime.Now;
                 }
                 else
                 {
@@ -221,10 +195,10 @@ public class Game : IPlayerActions, IRegisterActions
         return l1.All(elem => l2.Contains(elem) && l2.All(elem => l1.Contains(elem)));
     }
 
-    public void AcceptTrade(Player player, List<Guid> offeredCards, List<Guid> recievedCards)
+    public void AcceptTrade(Player initiator,Player accepter, List<Guid> offeredCards, List<Guid> recievedCards)
     {
         //Finner det kompatible budet i trading acrea
-        Queue<Card> currentPlayerHand = CurrentPlayer.Hand;
+        Queue<Card> currentPlayerHand = initiator.Hand;
         Queue<Card> currentPlayerNewHand = new Queue<Card>();
 
         foreach (var item in currentPlayerHand)
@@ -236,7 +210,7 @@ public class Game : IPlayerActions, IRegisterActions
             }
             else
             {
-                player.TradedCards.Add(item);
+                accepter.TradedCards.Add(item);
             }
         }
         var drawnCards = CurrentPlayer.DrawnCards;
@@ -246,7 +220,7 @@ public class Game : IPlayerActions, IRegisterActions
             //Fjerner alle kort som ble byttet bort
             if (offeredCards.Any(card => card == item.Id))
             {
-                player.TradedCards.Add(item);
+                accepter.TradedCards.Add(item);
                 drawnCardsRemove.Add(item);
             }
         }
@@ -254,7 +228,7 @@ public class Game : IPlayerActions, IRegisterActions
         CurrentPlayer.DrawnCards.RemoveAll(c => drawnCardsRemove.Contains(c));
 
         CurrentPlayer.Hand = currentPlayerNewHand;
-        Queue<Card> playerHand = player.Hand;
+        Queue<Card> playerHand = accepter.Hand;
         Queue<Card> playerNewHand = new Queue<Card>();
         foreach (var item in playerHand)
         {
@@ -268,7 +242,7 @@ public class Game : IPlayerActions, IRegisterActions
                 CurrentPlayer.TradedCards.Add(item);
             }
         }
-        player.Hand = playerNewHand;
+        accepter.Hand = playerNewHand;
 
     }
 
@@ -357,6 +331,7 @@ public class Game : IPlayerActions, IRegisterActions
 
     public void GoToTradePlanting()
     {
+        TradingArea.Clear();
         LastStateChange = DateTime.Now;
         CurrentPhase = Phase.TradePlanting;
     }
@@ -394,7 +369,8 @@ public class Game : IPlayerActions, IRegisterActions
             return;
         }
         var now = DateTime.Now;
-        if((now - LastStateChange) < TimeSpan.FromMinutes(2))
+        /* if((now - LastStateChange) < TimeSpan.FromMinutes(2)) */
+        if((now - LastStateChange) < TimeSpan.FromSeconds(5))
         {
             // vi er innenfor makstid, fortsett som vanlig
             return ;
@@ -408,6 +384,7 @@ public class Game : IPlayerActions, IRegisterActions
                 RemovePlayerFromGame(CurrentPlayer);
                 CurrentPlayer = CurrentPlayer.NextPlayer;
                 CurrentPhase = Phase.Planting;
+                LastStateChange = DateTime.Now;
                 break;
 
             case Phase.Trading:
@@ -418,6 +395,7 @@ public class Game : IPlayerActions, IRegisterActions
             case Phase.TradePlanting:
                 //Remove all players who have cards that aren't planted
                 var players = Players.Where(p=> p.TradedCards.Any() || p.DrawnCards.Any());
+                
                 foreach(Player player in players)
                 {
                     RemovePlayerFromGame(player);
@@ -426,6 +404,7 @@ public class Game : IPlayerActions, IRegisterActions
                 //spiller kort
                 CurrentPhase = Phase.Planting;
                 CurrentPlayer = CurrentPlayer.NextPlayer;
+                LastStateChange = DateTime.Now;
                 break;
             default:
                 break;
@@ -448,8 +427,10 @@ public class Game : IPlayerActions, IRegisterActions
         {
             forrigeSpiller = forrigeSpiller.NextPlayer;
         }
+
         //Her må vi gjøre noe om det bare er en spiller igjen
         forrigeSpiller.NextPlayer = player.NextPlayer;
+
         foreach(var field in player.Fields)
         {
             foreach(var card in field.Value)
@@ -490,7 +471,8 @@ public class Game : IPlayerActions, IRegisterActions
         random.Shuffle(list);
 
         for(int i = 0; i < discards; i++)
-        { Deck.Push(list[i]);
+        {
+            Deck.Push(list[i]);
         }
     }
 //Etter denne er kallt, skal feltet være tømt, få penger utifra kortene de har
@@ -534,12 +516,14 @@ public class Game : IPlayerActions, IRegisterActions
             CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
+            Round = game.NumberOfDeckTurns + 1;
             PhaseTimeLeft = game.LastStateChange.AddMinutes(2) - DateTime.Now,
 
             Deck = game.Deck.Count(),
             AvailableTrades = game.TradingArea.Select(negotiaton => new TradeDto
             {
                 InitiatorId = negotiaton.InitiatorId,
+                NegotiationId = negotiaton.NegotiationId,
                 OfferedCards = negotiaton.OfferedCards.Select(s => s.Type).ToList(),
                 CardTypesWanted = negotiaton.CardTypesWanted
             }),

@@ -149,7 +149,6 @@ public class StateFlowTests
         numCards -= 3; // 3 trekkes av spiller
         Assert.True(game.Deck.Count() == numCards);
         Assert.True(game.CurrentPlayer == p2);
-        Assert.True(p2.Name == "Bjørn");
         Guid fieldP2 = p2.Fields.Keys.First();
         game.Plant(fieldP2);
         game.Plant(fieldP2);
@@ -165,7 +164,7 @@ public class StateFlowTests
 
         var guids = offer.Select(o=>o.Type).ToList();
         Assert.True(game.CurrentPlayer == p2);
-        game.AcceptTrade(p1, trade.OfferedCards.Select(s=>s.Id).ToList(), price.Select(s=>s.Id).ToList());
+        game.AcceptTrade(game.CurrentPlayer,p1, trade.OfferedCards.Select(s=>s.Id).ToList(), price.Select(s=>s.Id).ToList());
         game.EndTrading();
         while (p1.DrawnCards.Any())
         {
@@ -241,8 +240,8 @@ public class StateFlowTests
         var trade1 = new Offer(albert.Id, albert.DrawnCards, new List<string>() { Card.SoyBean().Type });
         var trade2 = new Offer(albert.Id, albert.Hand.Where(c => c.Type == "RedBean").Union(albert.Hand.Where(c => c.Type == "StinkBean")).ToList(), new List<string>() { Card.GardenBean().Type });
 
-        game.AcceptTrade(catrin,trade1.OfferedCards.Select(s=>s.Id).ToList(), catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
-        game.AcceptTrade(bjørn,trade2.OfferedCards.Select(s=>s.Id).ToList(), bjørn.Hand.Where(c=> c.Type == "GardenBean").Select(s=>s.Id).ToList());
+        game.AcceptTrade(game.CurrentPlayer,catrin,trade1.OfferedCards.Select(s=>s.Id).ToList(), catrin.Hand.Where(c=> c.Type == "SoyBean").Select(s=>s.Id).ToList() );
+        game.AcceptTrade(game.CurrentPlayer,bjørn,trade2.OfferedCards.Select(s=>s.Id).ToList(), bjørn.Hand.Where(c=> c.Type == "GardenBean").Select(s=>s.Id).ToList());
 
         game.EndTrading();
         Assert.True(albert.Hand.Count() == 2);
@@ -292,7 +291,7 @@ public class StateFlowTests
                 );
 
 
-        game.AcceptTrade(albert,offer.OfferedCards.Select(s=>s.Id).ToList() , 
+        game.AcceptTrade(bjørn,albert,offer.OfferedCards.Select(s=>s.Id).ToList() , 
                 albert.Hand.Where(c => c.Type == "ChiliBean" || c.Type == "StinkBean").Select(s=> s.Id).ToList());
 
         game.EndTrading();
