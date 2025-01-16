@@ -5,9 +5,9 @@ public class GameStateDto
 {
     public string CurrentPlayer { get; set; }
     public string CurrentPhase { get; set; }
-    public string CurrentState { get; set; }
-    public string Round { get; set; }
-
+      public string CurrentState { get; set; }
+      public int Round { get; set; }
+    
     public TimeSpan PhaseTimeLeft { get; set; }
     public int Deck { get; set; }
     public IEnumerable<TradeDto> AvailableTrades { get; set; }
