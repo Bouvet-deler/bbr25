@@ -37,8 +37,9 @@ Du kan også velge å avslutte planting, ved å kalle endepunktet
 /api/playing/end-planting,
 som tar oss videre til byttefasen. 
 
-Fasen blir satt til Trading, og spille trekker to kort til den aktive
-spilleren(CurrentPlayer), som ligger i DrawnCards
+Fasen blir satt til Trading, og spille trekker to kort for deg som aktiv
+spilleren(CurrentPlayer), som ligger i DrawnCards. For å se dine nye kort må klienten 
+pulle state fra spillserveren.
 
 Her kan alle spillere bli med å bytte, men de må bytte med den aktive spilleren. 
 
