@@ -369,8 +369,8 @@ public class Game : IPlayerActions, IRegisterActions
             return;
         }
         var now = DateTime.Now;
-        /* if((now - LastStateChange) < TimeSpan.FromMinutes(2)) */
-        if((now - LastStateChange) < TimeSpan.FromSeconds(5))
+        if((now - LastStateChange) < TimeSpan.FromMinutes(2))
+        /* if((now - LastStateChange) < TimeSpan.FromSeconds(5)) */
         {
             // vi er innenfor makstid, fortsett som vanlig
             return ;
