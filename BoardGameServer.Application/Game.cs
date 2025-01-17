@@ -45,6 +45,11 @@ public class Game : IPlayerActions, IRegisterActions
 
     public Guid Join(string name, string playerId)
     {
+        if (!Guid.TryParse(playerId, out Guid parsedPlayerId) || parsedPlayerId == Guid.Empty)
+        {
+            throw new ArgumentException("The playerId is not a valid GUID.");
+        }
+
         var player = new Player(name, playerId);
         Players.Add(player);
         if (!_eloCalculator.ScoreRepository.GetScores().Any(kv => kv.Key == name))

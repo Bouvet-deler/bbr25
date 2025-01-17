@@ -99,12 +99,14 @@ public class GameServiceTests
         string name = "Bendert";
         string playerId = Guid.NewGuid().ToString();
         game.Join(name, playerId);
+        game.StartGame();
         Assert.True(game.Players.Count() == 2);
         Player player = game.Players.First();
+        Player player2 = game.Players[1];
         Assert.True(player == player.NextPlayer.NextPlayer);
-        Assert.True(player == player.NextPlayer.NextPlayer.NextPlayer);
+        Assert.True(player2 == player.NextPlayer.NextPlayer.NextPlayer);
         var next = player.NextPlayer;
-        Assert.True(next == next.NextPlayer.NextPlayer.NextPlayer);
+        Assert.True(player == next.NextPlayer.NextPlayer.NextPlayer);
     }
     [Fact]
     void GoToPlantingPhase_AddsCardsToHand()
