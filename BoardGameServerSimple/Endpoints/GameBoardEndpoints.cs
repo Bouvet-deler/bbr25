@@ -59,18 +59,18 @@ public static class GameBoardEndpoints
         group.MapGet("/join", static async Task<Results<Ok<string>,ValidationProblem>>(string gameName, string playerKey, string name, [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetGameByName(gameName);
-            game.Lock.Enter();
             try{
-            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            validationRules.JoinGameValidation(game,name,errors);
-            if (errors.Any()) 
-            {
-                game.Lock.Exit();
-                return TypedResults.ValidationProblem(errors);
-            }
-            game.Join(name, playerKey);
+            game.Lock.Enter();
+                IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
+                validationRules.JoinGameValidation(game,name,errors);
+                if (errors.Any()) 
+                {
+                    game.Lock.Exit();
+                    return TypedResults.ValidationProblem(errors);
+                }
+                game.Join(name, playerKey);
             }finally{
-            game.Lock.Exit();
+                game.Lock.Exit();
             }
             return TypedResults.Ok(playerKey);
         })
@@ -84,6 +84,7 @@ public static class GameBoardEndpoints
         group.MapGet("/start", static async Task<Results<Ok,ValidationProblem>>(string gameName, [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetGameByName(gameName);
+            try{
             game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
@@ -94,7 +95,9 @@ public static class GameBoardEndpoints
                 return TypedResults.ValidationProblem(errors);
             }
             game.StartGame();
-            game.Lock.Exit();
+            }finally{
+                game.Lock.Exit();
+            }
             return TypedResults.Ok();
         })
         .WithOpenApi(op =>
@@ -106,9 +109,12 @@ public static class GameBoardEndpoints
         group.MapGet("/check-for-timeout", static async Task<Results<Ok,ValidationProblem>>(string gameName,[FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetGameByName(gameName);
-            game.Lock.Enter();
-            game.CheckForTimeout();
-            game.Lock.Exit();
+            try{
+                game.Lock.Enter();
+                game.CheckForTimeout();
+            }finally{
+                game.Lock.Exit();
+            }
             return TypedResults.Ok();
         })
         .WithOpenApi(op =>
