@@ -30,9 +30,24 @@ public class Game : IPlayerActions, IRegisterActions
 
     public readonly List<Offer> TradingArea;
     public DateTime LastStateChange = DateTime.Now; 
+    public string GameName;
 
+    public Game(EloCalculator eloCalculator, string gameName)
+    {
+        GameName = gameName;
+        CurrentState = State.Registering;
+        Players = new List<Player>();
+        Discard = new Stack<Card>();
+        Deck = new Stack<Card>();
+        TradingArea = new List<Offer>();
+        TotalTimePerTurn = TimeSpan.FromSeconds(5);
+
+        _eloCalculator = eloCalculator;
+    }
     public Game(EloCalculator eloCalculator)
     {
+
+        GameName = "DEFAULT";
         CurrentState = State.Registering;
         Players = new List<Player>();
         Discard = new Stack<Card>();
@@ -378,7 +393,6 @@ public class Game : IPlayerActions, IRegisterActions
             NumberOfDeckTurns++;
             if (NumberOfDeckTurns > 2)
             {
-                NumberOfDeckTurns--;
                 GameEnded = true;
             }
             else
@@ -543,6 +557,7 @@ public class Game : IPlayerActions, IRegisterActions
     public void HandleGameEnd()
     {
         CurrentState = State.GameDone;
+        CurrentPhase = Phase.Planting;
         LastStateChange = DateTime.Now;
         var players = Players
             .OrderByDescending(p=> p.Coins)
@@ -558,11 +573,15 @@ public class Game : IPlayerActions, IRegisterActions
     {
         return new GameStateDto
         {
+            Name = game.GameName,
             CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
             Round = game.NumberOfDeckTurns,
+
             PhaseTimeLeft = game.LastStateChange + game.TotalTimePerTurn - DateTime.Now,
+            PhaseEndTimestamp = game.LastStateChange + game.TotalTimePerTurn, 
+            LastStateChange = game.LastStateChange, 
 
             Deck = game.Deck.Count(),
             AvailableTrades = game.TradingArea.Select(negotiaton => new TradeDto
@@ -579,7 +598,7 @@ public class Game : IPlayerActions, IRegisterActions
                         Coins = p.Coins,
                         Fields = p.Fields.Select(kv => new FieldDto { Key = kv.Key, Card = kv.Value.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }) }),
                         Hand = p.Hand.Count(),
-                        DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }),
+                        DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type, TotalNumberOfType = c.TotalNumberOfType, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }),
                         TradedCards = p.TradedCards.Select(c => new CardDto { Id = c.Id, Type = c.Type }),
                         IsActive = p.IsActive,
                     })?.ToList(),
@@ -588,6 +607,7 @@ public class Game : IPlayerActions, IRegisterActions
                 FirstCard = hand.Peek() == c, //Bare for å gjøre det ekstra tydlig hvilket kort de kan spille
                 Id = c.Id,
                 Type = c.Type,
+                TotalNumberOfType = c.TotalNumberOfType,
                 ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList(),
             }),
         };

@@ -14,16 +14,19 @@ public static class GameBoardEndpoints
         group.MapGet("/all", (string? playerId, [FromServices] GameService gameService) =>
         {
             Guid playerKey;
-            var game = gameService.GetCurrentGame();
-            Queue<Card> hand = new Queue<Card>();
-            //Foreløpig gjøres dette bare her
-            if (Guid.TryParse(playerId, out playerKey))
+            var games = gameService.GetAllGames();
+            Queue<Card> hand = new Queue<Card>(); ;
+            
+            List<GameStateDto> retur = new List<GameStateDto>{};
+            foreach (var game in games)
             {
-                var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
-                if (p != null) hand = p.Hand;
+                var result = Game.CreateGameState(game, hand);
+                if (Guid.TryParse(playerId, out playerKey)) {
+                    var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
+                    if (p != null) hand = p.Hand;
+                }
+                retur.Add(Game.CreateGameState(game, hand));
             }
-            var result = Game.CreateGameState(game, hand);
-            var retur = new List<GameStateDto> { result, result, result, result, result };
             return TypedResults.Ok<List<GameStateDto>>(retur);
         })
         .WithOpenApi(op =>
@@ -32,10 +35,10 @@ public static class GameBoardEndpoints
             op.Description = "bruk din playerKey for å få se hånden din";
             return op;
         });
-        group.MapGet("/", (string? playerId, [FromServices] GameService gameService) =>
+        group.MapGet("/", (string gameName, string? playerId, [FromServices] GameService gameService) =>
         {
             Guid playerKey;
-            var game = gameService.GetCurrentGame();
+            var game = gameService.GetGameByName(gameName);
             Queue<Card> hand = new Queue<Card>(); ;
             //Foreløpig gjøres dette bare her
             if (Guid.TryParse(playerId, out playerKey))
@@ -53,14 +56,14 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapGet("/join", static async Task<Results<Ok<Guid>, ValidationProblem>> (string name, Guid playerId, [FromServices] GameService gameService, ValidationRules validationRules) =>
+        group.MapGet("/join", static async Task<Results<Ok<Guid>,ValidationProblem>>(string gameName, string name, [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
-            var game = gameService.GetCurrentGame();
+            var game = gameService.GetGameByName(gameName);
             game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            validationRules.NotAlreadyJoined(game, name, errors);
-            if (errors.Any())
+            validationRules.JoinGameValidation(game,name,errors);
+            if (errors.Any()) 
             {
                 game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
@@ -76,14 +79,9 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapGet("/start", static async Task<Results<Ok, ValidationProblem>> (string key, [FromServices] GameService gameService, ValidationRules validationRules) =>
+        group.MapGet("/start", static async Task<Results<Ok,ValidationProblem>>(string gameName, [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
-            if (key != "BlåFjell2025")
-            {
-                return TypedResults.ValidationProblem(new Dictionary<string, string[]> { { "Error", new[] { "Not permitted" } } });
-            }
-
-            var game = gameService.GetCurrentGame();
+            var game = gameService.GetGameByName(gameName);
             game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
@@ -103,10 +101,9 @@ public static class GameBoardEndpoints
             op.Description = "Starts the game. This will destroy any game in progress.";
             return op;
         });
-
-        group.MapGet("/check-for-timeout", static async Task<Results<Ok, ValidationProblem>> ([FromServices] GameService gameService, ValidationRules validationRules) =>
+        group.MapGet("/check-for-timeout", static async Task<Results<Ok,ValidationProblem>>(string gameName,[FromServices] GameService gameService,ValidationRules validationRules) =>
         {
-            var game = gameService.GetCurrentGame();
+            var game = gameService.GetGameByName(gameName);
             game.Lock.Enter();
             game.CheckForTimeout();
             game.Lock.Exit();

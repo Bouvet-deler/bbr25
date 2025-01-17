@@ -3,12 +3,15 @@
 namespace BoardGameServer.Application.Models;
 public class GameStateDto
 {
+    public string Name { get; set; }
     public string CurrentPlayer { get; set; }
     public string CurrentPhase { get; set; }
       public string CurrentState { get; set; }
       public int Round { get; set; }
     
     public TimeSpan PhaseTimeLeft { get; set; }
+    public DateTime PhaseEndTimestamp {get; set;}
+    public DateTime        LastStateChange {get; set;} 
     public int Deck { get; set; }
     public IEnumerable<TradeDto> AvailableTrades { get; set; }
     public Stack<Card> DiscardPile { get; set; }
@@ -45,7 +48,7 @@ public class CardDto
 {
     public Guid Id { get; set; }
     public string Type { get; set; }
-
+    public int TotalNumberOfType {get; set;}
     public List<ExchangeMapEntry> ExchangeMap { get; set; }
 }
 

@@ -1,6 +1,10 @@
 # BoardGameServerSimple
 
+## Starte serveren
 
+1. Last ned .NET SDK 9
+2. Gå til undermappa BoardGameServerSimple
+3. Kjør `dotnet run`. Serveren vil bygges og printe hvilken port den lytter på.
 
 ## Spillet
 

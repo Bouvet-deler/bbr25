@@ -5,6 +5,7 @@ public class Card
     //Kort må identifiseres, fordi vi må respektere rekkefølge
     public Guid Id;
     public string Type;
+    public int TotalNumberOfType;
 
     public readonly List<Tuple<int, int>> ExchangeMap;
     public int Harvest(int numberOfCards)
@@ -19,9 +20,10 @@ public class Card
         }
         return 0;
     }
-    private Card(string type, List<Tuple<int, int>> exchangeMap)
+    private Card(string type, int totalNumberOfType, List<Tuple<int, int>> exchangeMap)
     {
         Type = type;
+        TotalNumberOfType = totalNumberOfType;
         ExchangeMap = exchangeMap;
         Id = Guid.NewGuid();
     }
@@ -34,7 +36,7 @@ public class Card
         new Tuple<int, int>(2,1),
     };
         //Ensure ordering
-        var card = new Card("BlackEyedBean", exchangeMap);
+        var card = new Card("Marshwaganda",10, exchangeMap);
         return card;
     }
     public static Card ChiliBean()
@@ -46,7 +48,7 @@ public class Card
         new Tuple<int, int>(3,1)
     };
         //Ensure ordering
-        var card = new Card("ChiliBean", exchangeMap);
+        var card = new Card("Plutos Mane",18, exchangeMap);
         return card;
     }
     public static Card BlueBean()
@@ -58,7 +60,7 @@ public class Card
         new Tuple<int, int>(4,1)
     };
         //Ensure ordering
-        var card = new Card("BlueBean", exchangeMap);
+        var card = new Card("Venusvamp", 20, exchangeMap);
         return card;
     }
     public static Card RedBean()
@@ -70,7 +72,7 @@ public class Card
         new Tuple<int, int>(2,1)
     };
         //Ensure ordering
-        var card = new Card("RedBean", exchangeMap);
+        var card = new Card("Uranuceps",8, exchangeMap);
         return card;
     }
     public static Card SoyBean()
@@ -82,7 +84,7 @@ public class Card
         new Tuple<int, int>(2,1)
     };
         //Ensure ordering
-        var card = new Card("SoyBean", exchangeMap);
+        var card = new Card("Saturnjong", 12,exchangeMap);
         return card;
     }
     public static Card StinkBean()
@@ -94,7 +96,7 @@ public class Card
         new Tuple<int, int>(3,1)
     };
         //Ensure ordering
-        var card = new Card("StinkBean", exchangeMap);
+        var card = new Card("Jupitail", 16, exchangeMap);
         return card;
     }
     public static Card GreenBean()
@@ -106,7 +108,7 @@ public class Card
         new Tuple<int, int>(3,1)
     };
         //Ensure ordering
-        var card = new Card("GreenBean", exchangeMap);
+        var card = new Card("Jordflue",14, exchangeMap);
         return card;
     }
     public static Card GardenBean()
@@ -116,7 +118,7 @@ public class Card
         new Tuple<int, int>(2,2)
     };
         //Ensure ordering
-        var card = new Card("GardenBean", exchangeMap);
+        var card = new Card("Merkubello",6, exchangeMap);
         return card;
     }
 }
