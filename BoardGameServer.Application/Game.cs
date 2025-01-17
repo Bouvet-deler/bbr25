@@ -30,9 +30,24 @@ public class Game : IPlayerActions, IRegisterActions
 
     public readonly List<Offer> TradingArea;
     public DateTime LastStateChange = DateTime.Now; 
+    public string GameName;
 
+    public Game(EloCalculator eloCalculator, string gameName)
+    {
+        GameName = gameName;
+        CurrentState = State.Registering;
+        Players = new List<Player>();
+        Discard = new Stack<Card>();
+        Deck = new Stack<Card>();
+        TradingArea = new List<Offer>();
+        TotalTimePerTurn = TimeSpan.FromSeconds(5);
+
+        _eloCalculator = eloCalculator;
+    }
     public Game(EloCalculator eloCalculator)
     {
+
+        GameName = "DEFAULT";
         CurrentState = State.Registering;
         Players = new List<Player>();
         Discard = new Stack<Card>();

@@ -1,25 +1,25 @@
 using ScoringService;
-using Negotiator;
 using SharedModels;
 
 namespace BoardGameServer.Application.Services
 {
     public class GameService
     {
-        Lock _lock = new Lock();
-        private readonly Game _game;
+        IDictionary<string, Game> _games = new Dictionary<string, Game>();
 
         public GameService(EloCalculator elocalculator)
         {
-            _game = new Game( elocalculator);
+            _games["PINK"] = new Game(elocalculator, "PINK");
+            _games["BLUE"] = new Game(elocalculator, "BLUE");
         }
 
-        public Game GetCurrentGame()
+        public Game GetGameByName(string gameName)
         {
-            lock(_lock)
-            {
-            }
-            return _game;
+            return _games[gameName];
+        }
+        public IEnumerable<Game> GetAllGames()
+        {
+            return _games.Values;
         }
 
         public PlayerStatus GetStatusPlayer(Guid playerId)
