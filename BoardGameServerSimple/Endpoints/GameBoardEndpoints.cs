@@ -60,7 +60,7 @@ public static class GameBoardEndpoints
         {
             var game = gameService.GetGameByName(gameName);
             game.Lock.Enter();
-
+            try{
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             validationRules.JoinGameValidation(game,name,errors);
             if (errors.Any()) 
@@ -69,7 +69,9 @@ public static class GameBoardEndpoints
                 return TypedResults.ValidationProblem(errors);
             }
             game.Join(name, playerKey);
+            }finally{
             game.Lock.Exit();
+            }
             return TypedResults.Ok(playerKey);
         })
         .WithOpenApi(op =>
