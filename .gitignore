@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/BoardGameServerSimple/Properties/ServiceDependencies/bbr25-backend - Web Deploy/profile.arm.json
