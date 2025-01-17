@@ -19,6 +19,7 @@ public class Game : IPlayerActions, IRegisterActions
 
     //Holder styr på hvor i turen vi er. 
     public Phase CurrentPhase;
+    public TimeSpan TotalTimePerTurn;
 
     public int NumberOfDeckTurns;
     public bool GameEnded;
@@ -37,6 +38,7 @@ public class Game : IPlayerActions, IRegisterActions
         Discard = new Stack<Card>();
         Deck = new Stack<Card>();
         TradingArea = new List<Offer>();
+        TotalTimePerTurn = TimeSpan.FromSeconds(5);
 
         _eloCalculator = eloCalculator;
     }
@@ -372,6 +374,7 @@ public class Game : IPlayerActions, IRegisterActions
             NumberOfDeckTurns++;
             if (NumberOfDeckTurns > 2)
             {
+                NumberOfDeckTurns--;
                 GameEnded = true;
             }
             else
@@ -397,7 +400,7 @@ public class Game : IPlayerActions, IRegisterActions
         }
         var now = DateTime.Now;
         /* if((now - LastStateChange) < TimeSpan.FromMinutes(2)) */
-        if((now - LastStateChange) < TimeSpan.FromSeconds(2))
+        if((now - LastStateChange) < TotalTimePerTurn)
         {
             // vi er innenfor makstid, fortsett som vanlig
             return ;
@@ -546,7 +549,7 @@ public class Game : IPlayerActions, IRegisterActions
         _eloCalculator.ScoreGame(players);
         Players.Clear();
     }
-
+    
     public static GameStateDto CreateGameState(Game game, Queue<Card> hand)
     {
         return new GameStateDto
@@ -554,8 +557,8 @@ public class Game : IPlayerActions, IRegisterActions
             CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
-            Round = game.NumberOfDeckTurns + 1,
-            PhaseTimeLeft = game.LastStateChange.AddMinutes(2) - DateTime.Now,
+            Round = game.NumberOfDeckTurns,
+            PhaseTimeLeft = game.LastStateChange + game.TotalTimePerTurn - DateTime.Now,
 
             Deck = game.Deck.Count(),
             AvailableTrades = game.TradingArea.Select(negotiaton => new TradeDto
