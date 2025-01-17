@@ -60,6 +60,7 @@ class Api:
         for player in state.players:
             if player['name'] == self.player_name:
                 print(self.player_name, "is already in the game")
+                print(f"Note: We assume that this is actually you. If somebody else registered a player named {self.player_name}, your next action may fail or you won't be able to see your own hand.")
                 return self.player_id
         response = self.make_request(f'/api/game/join?gameName={game_name}&name={self.player_name}&playerKey={self.player_id}')
         return response
