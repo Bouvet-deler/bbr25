@@ -48,7 +48,7 @@ public class CardDto
 {
     public Guid Id { get; set; }
     public string Type { get; set; }
-
+    public int TotalNumberOfType {get; set;}
     public List<ExchangeMapEntry> ExchangeMap { get; set; }
 }
 

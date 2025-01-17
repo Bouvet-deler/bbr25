@@ -594,7 +594,7 @@ public class Game : IPlayerActions, IRegisterActions
                         Coins = p.Coins,
                         Fields = p.Fields.Select(kv => new FieldDto { Key = kv.Key, Card = kv.Value.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }) }),
                         Hand = p.Hand.Count(),
-                        DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }),
+                        DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type, TotalNumberOfType = c.TotalNumberOfType, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }),
                         TradedCards = p.TradedCards.Select(c => new CardDto { Id = c.Id, Type = c.Type }),
                         IsActive = p.IsActive,
                     })?.ToList(),
@@ -603,6 +603,7 @@ public class Game : IPlayerActions, IRegisterActions
                 FirstCard = hand.Peek() == c, //Bare for å gjøre det ekstra tydlig hvilket kort de kan spille
                 Id = c.Id,
                 Type = c.Type,
+                TotalNumberOfType = c.TotalNumberOfType,
                 ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList(),
             }),
         };
