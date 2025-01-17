@@ -576,7 +576,7 @@ public class Game : IPlayerActions, IRegisterActions
             Round = game.NumberOfDeckTurns,
 
             PhaseTimeLeft = game.LastStateChange + game.TotalTimePerTurn - DateTime.Now,
-            TotalTimePerTurn = game.TotalTimePerTurn, 
+            PhaseEndTimestamp = game.LastStateChange + game.TotalTimePerTurn, 
             LastStateChange = game.LastStateChange, 
 
             Deck = game.Deck.Count(),

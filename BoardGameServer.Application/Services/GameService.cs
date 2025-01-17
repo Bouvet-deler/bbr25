@@ -9,11 +9,11 @@ namespace BoardGameServer.Application.Services
 
         public GameService(EloCalculator elocalculator)
         {
-            _games["BLUE"] = new Game(elocalculator, "BLUE");
-            _games["RED"] = new Game(elocalculator, "RED");
-            _games["PINK"] = new Game(elocalculator, "PINK");
-            _games["YELLOW"] = new Game(elocalculator, "YELLOW");
-            _games["GREEN"] = new Game(elocalculator, "GREEN");
+            _games["GAME1"] = new Game(elocalculator, "GAME1");
+            _games["GAME2"] = new Game(elocalculator, "GAME2");
+            _games["GAME3"] = new Game(elocalculator, "GAME3");
+            _games["GAME4"] = new Game(elocalculator, "GAME4");
+            _games["GAME5"] = new Game(elocalculator, "GAME5");
         }
 
         public Game GetGameByName(string gameName)

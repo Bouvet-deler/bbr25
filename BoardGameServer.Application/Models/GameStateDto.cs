@@ -10,7 +10,7 @@ public class GameStateDto
       public int Round { get; set; }
     
     public TimeSpan PhaseTimeLeft { get; set; }
-    public TimeSpan TotalTimePerTurn {get; set;}
+    public TimeSpan PhaseEndTimestamp {get; set;}
     public DateTime        LastStateChange {get; set;} 
     public int Deck { get; set; }
     public IEnumerable<TradeDto> AvailableTrades { get; set; }
