@@ -25,9 +25,10 @@ public class StateFlowTests
     [Fact]
     public void PlantWhenInPlantingPhaseTakesYouToPlantingOptional()
     {
+        var playerId = Guid.NewGuid().ToString();
         Game game = new Game(_eloCalculator);
-        game.Join("Benny");
-        game.Join("Benny");
+        game.Join("Benny", playerId);
+        game.Join("Benny", playerId);
         game.StartGame();
         game.CurrentPhase = Phase.Planting;
         Guid field = game.CurrentPlayer.Fields.Keys.First();
@@ -38,9 +39,10 @@ public class StateFlowTests
     [Fact]
     public void PlantWhenInPlantingOptionalTakesYouToTrading()
     {
+        var playerId = Guid.NewGuid().ToString();
         Game game = new Game(_eloCalculator);
-        game.Join("Benny");
-        game.Join("Benny");
+        game.Join("Benny", playerId);
+        game.Join("Benny", playerId);
         game.StartGame();
         game.CurrentPhase = Phase.PlantingOptional;
         Guid field = game.CurrentPlayer.Fields.Keys.First();
@@ -52,9 +54,10 @@ public class StateFlowTests
     [Fact]
     public void EndPlantingInPlantingOptionalTakesYouToTrading()
     {
+        var playerId = Guid.NewGuid().ToString();
         Game game = new Game(_eloCalculator);
-        game.Join("Benny");
-        game.Join("Benny");
+        game.Join("Benny", playerId);
+        game.Join("Benny", playerId);
         game.StartGame();
         game.CurrentPhase = Phase.PlantingOptional;
 
@@ -66,9 +69,10 @@ public class StateFlowTests
     [Fact]
     public void EndTradingInPlantingOptionalTakesYouToTradePlanting()
     {
+        var playerId = Guid.NewGuid().ToString();
         Game game = new Game(_eloCalculator);
-        game.Join("Benny");
-        game.Join("Benny");
+        game.Join("Benny", playerId);
+        game.Join("Benny", playerId);
         game.StartGame();
         game.CurrentPhase = Phase.Trading;
 
@@ -83,8 +87,9 @@ public class StateFlowTests
     public void EndPlantingInPlantingTakesYouToTrading()
     {
         Game game = new Game(_eloCalculator);
-        game.Join("Benny");
-        game.Join("Benny");
+        var playerId = Guid.NewGuid().ToString();
+        game.Join("Benny", playerId);
+        game.Join("Benny", playerId);
         game.StartGame();
         game.CurrentPhase = Phase.Planting;
 
@@ -98,8 +103,9 @@ public class StateFlowTests
     public void PlantTradeFinalCallMakesItTheNextPlayersTurn()
     {
         Game game = new Game(_eloCalculator);
-        game.Join("Benny");
-        game.Join("Benny");
+        var playerId = Guid.NewGuid().ToString();
+        game.Join("Benny", playerId);
+        game.Join("Benny", playerId);
         game.StartGame();
         game.CurrentPhase = Phase.TradePlanting;
         Player p1 = game.Players.First();
@@ -126,8 +132,9 @@ public class StateFlowTests
     {
         int numCards = 104;
         Game game = new Game(_eloCalculator);
-        game.Join("Benny");
-        game.Join("Bjørn");
+        var playerId = Guid.NewGuid().ToString();
+        game.Join("Benny", playerId);
+        game.Join("Bjørn", playerId);
         game.StartGame();
         Player p1 = game.Players[0];
         Player p2 = game.Players[1];
@@ -195,9 +202,9 @@ public class StateFlowTests
     {
         int numCards = 104;
         Game game = new Game(_eloCalculator);
-        game.Join("Albert");
-        game.Join("Bjørn");
-        game.Join("Catrin");
+        game.Join("Albert", Guid.NewGuid().ToString());
+        game.Join("Bjørn", Guid.NewGuid().ToString());
+        game.Join("Catrin", Guid.NewGuid().ToString());
         game.random = new Random(1);
         game.StartGame();
         Player albert = game.Players[0];

@@ -2,7 +2,6 @@
 using BoardGameServer.Application.Services;
 using SharedModels;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using BoardGameServer.Application.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 namespace BoardGameServerSimple.Endpoints;
@@ -66,11 +65,12 @@ public static class GameBoardEndpoints
             validationRules.JoinGameValidation(game,name,errors);
             if (errors.Any()) 
             {
-            game.Lock.Exit();
+                game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
-            }         
+            }
             game.Lock.Exit();
-            return TypedResults.Ok(game.Join(name));
+            game.Join(name, playerId.ToString());
+            return TypedResults.Ok(playerId);
         })
         .WithOpenApi(op =>
         {
@@ -85,12 +85,13 @@ public static class GameBoardEndpoints
             game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            validationRules.NotAlreadyStarted(game,errors);
-            if (errors.Any()) 
+            validationRules.NotAlreadyStarted(game, errors);
+            if (errors.Any())
             {
-            game.Lock.Exit();
+                game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
-            }         game.StartGame();
+            }
+            game.StartGame();
             game.Lock.Exit();
             return TypedResults.Ok();
         })

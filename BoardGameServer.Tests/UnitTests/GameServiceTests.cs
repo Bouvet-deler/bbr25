@@ -36,7 +36,8 @@ public class GameServiceTests
     {
         Game game = new Game( _eloCalculator);
         string name = "Bendert";
-        game.Join(name);
+        string playerId = Guid.NewGuid().ToString();
+        game.Join(name, playerId);
         game.StartGame();
         Player p = game.Players.FirstOrDefault();
         Assert.NotNull(p);
@@ -47,13 +48,15 @@ public class GameServiceTests
         Assert.True(p.Name == name);
         Assert.True(game.Deck.Count() > 0);
     }
+
     [Fact]
     void StartGameWithTwoPlayers_PlayerTwoIsSetUp()
     {
         Game game = new Game( _eloCalculator);
         string name = "Bendert";
-        game.Join("Først");
-        game.Join(name);
+        string playerId = Guid.NewGuid().ToString();
+        game.Join("Først", Guid.NewGuid().ToString());
+        game.Join(name, playerId);
         game.StartGame();
         Player p = game.Players.Where(s => !s.StartingPlayer).FirstOrDefault();
         Assert.NotNull(p);
@@ -66,9 +69,10 @@ public class GameServiceTests
     {
         Game game = new Game( _eloCalculator);
         string name = "Bendert";
-        game.Join("Først");
-        game.Join("Andre");
-        game.Join(name);
+        string playerId = Guid.NewGuid().ToString();
+        game.Join("Først", Guid.NewGuid().ToString());
+        game.Join("Andre", Guid.NewGuid().ToString());
+        game.Join(name, playerId);
         game.StartGame();
         Assert.NotNull(game.Players.Where(s => s.StartingPlayer).Single());
         Assert.True(game.Players.Where(s => !s.StartingPlayer).Count() == 2);
@@ -78,10 +82,11 @@ public class GameServiceTests
     void JoinGame_PlayerCountIncreases()
     {
         Game game = new Game( _eloCalculator);
-        game.Join("Først");
+        game.Join("Først", Guid.NewGuid().ToString());
         Assert.True(game.Players.Count() == 1);
         string name = "Bendert";
-        game.Join(name);
+        string playerId = Guid.NewGuid().ToString();
+        game.Join(name, playerId);
         Assert.True(game.Players.Count() == 2);
 
     }
@@ -89,24 +94,28 @@ public class GameServiceTests
     void JoinGame()
     {
         Game game = new Game( _eloCalculator);
-        game.Join("Først");
+        game.Join("Først", Guid.NewGuid().ToString());
         Assert.True(game.Players.Count() == 1);
         string name = "Bendert";
-        game.Join(name);
+        string playerId = Guid.NewGuid().ToString();
+        game.Join(name, playerId);
+        game.StartGame();
         Assert.True(game.Players.Count() == 2);
         Player player = game.Players.First();
+        Player player2 = game.Players[1];
         Assert.True(player == player.NextPlayer.NextPlayer);
-        Assert.True(player == player.NextPlayer.NextPlayer.NextPlayer);
+        Assert.True(player2 == player.NextPlayer.NextPlayer.NextPlayer);
         var next = player.NextPlayer;
-        Assert.True(next == next.NextPlayer.NextPlayer.NextPlayer);
+        Assert.True(player == next.NextPlayer.NextPlayer.NextPlayer);
     }
     [Fact]
     void GoToPlantingPhase_AddsCardsToHand()
     {
         Game game = new Game( _eloCalculator);
-        game.Join("Først");
+        game.Join("Først", Guid.NewGuid().ToString());
         string name = "Bendert";
-        game.Join(name);
+        string playerId = Guid.NewGuid().ToString();
+        game.Join(name, playerId);
         game.StartGame();
         Assert.True(game.Deck.Count() > 3);
         Player p = game.Players.First();
@@ -120,10 +129,11 @@ public class GameServiceTests
     void Trade_TradeAwayLastChilibean_LastChilibeanRemoved()
     {
         Game game = new Game( _eloCalculator);
-        game.Join("Først");
+        game.Join("Først", Guid.NewGuid().ToString());
         string name = "Bendert";
-        game.Join(name);
-        game.Join("Luring");
+        string playerId = Guid.NewGuid().ToString();
+        game.Join(name, playerId);
+        game.Join("Luring", Guid.NewGuid().ToString());
         game.random = new Random(1);
         game.StartGame();
         Player p1 = game.Players.First();

@@ -33,10 +33,9 @@ public class Player
     //Egenregistrert navn
     public string? Name;
 
-    public Player(string name)
+    public Player(string name, string playerId)
     {
-        Id = Guid.NewGuid();
         Name = name;
+        Id = new Guid(playerId);
     }
-
 }
