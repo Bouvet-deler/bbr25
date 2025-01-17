@@ -19,18 +19,15 @@ public static class GamePlayingEndpoints
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetGameByName(gameName);
             try{
-            game.Lock.Enter();
                 Player p = game.Players.Where(c => c.Id == playerId).First();
                 validationRules.PlantingPhaseValidation(game, p, fieldId, errors);
                 if (errors.Any())
                 {
                     Console.WriteLine("Ikke plantet");
-                    game.Lock.Exit();
                     return TypedResults.ValidationProblem(errors);
                 }
                 game.Plant(fieldId);
             }finally{
-                game.Lock.Exit();
             }
             return TypedResults.Ok("plantet");
         })
@@ -46,16 +43,13 @@ public static class GamePlayingEndpoints
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetGameByName(gameName);
             try{
-            game.Lock.Enter();
                 Player p = game.Players.Where(c => c.Id == playerId).First();
                 validationRules.EndPlantingValidation(game, p, errors);
                 if (errors.Any()) {
-                    game.Lock.Exit();
                     return TypedResults.ValidationProblem(errors);
                 }
                 game.EndPlanting();
             }finally{
-                game.Lock.Exit();
             }
             return TypedResults.Ok("Plantefase avsluttet");
         })
@@ -71,17 +65,14 @@ public static class GamePlayingEndpoints
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetGameByName(gameName);
             try{
-                game.Lock.Enter();
                 Player p = game.Players.Where(c => c.Id == playerId).First();
                 validationRules.EndTradingValidation(game, p, errors);
                 if (errors.Any()) 
                 {
-                    game.Lock.Exit();
                     return TypedResults.ValidationProblem(errors);
                 }
                 game.EndTrading();
             }finally{
-                game.Lock.Exit();
             }
             return TypedResults.Ok("Trading-fase avsluttet");
         })
@@ -98,14 +89,12 @@ public static class GamePlayingEndpoints
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetGameByName(gameName);
             try{
-            game.Lock.Enter();
 
             Player p = game.Players.Where(c => c.Id == playerId).First();
             validationRules.TradePlantingPhaseValidation(game, p,cardId, fieldId, errors);
             if (errors.Any()) 
             {
                 Console.WriteLine("Validation traee planting");
-            game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
             }
 
@@ -113,7 +102,6 @@ public static class GamePlayingEndpoints
             game.PlantTrade(p, card, fieldId);
             Console.WriteLine("Suksee tradeplant");
             }finally{
-            game.Lock.Exit();
             }
 
             return TypedResults.Ok("Plantet etter byttene");
@@ -130,17 +118,14 @@ public static class GamePlayingEndpoints
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetGameByName(gameName);
             try{
-            game.Lock.Enter();
             Player p = game.Players.Where(c => c.Id == playerId).First();
             validationRules.HarvestFieldValidation(game, p, fieldId, errors);
             if (errors.Any()) {
             Console.WriteLine("Funker denne");
-            game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
             }
             game.HarvestField(p, fieldId);
             }finally{
-            game.Lock.Exit();
             }
             return TypedResults.Ok("Høstet suksessfylt");
         })
@@ -155,7 +140,6 @@ public static class GamePlayingEndpoints
         {
             var game = gameService.GetGameByName(gameName);
             try{
-                game.Lock.Enter();
                 //finn kortene som skal med i offer
 
                 Player p = game.Players.Where(c => c.Id == playerId).First();
@@ -163,7 +147,6 @@ public static class GamePlayingEndpoints
                 var realOffer = new Offer(playerId, cards, offer.CardTypesWanted);
                 game.RequestTrade(realOffer);
             }finally{
-                game.Lock.Exit();
             }
             return TypedResults.Ok("Bytte blir preentert!");
         })
@@ -177,32 +160,27 @@ public static class GamePlayingEndpoints
         group.MapPost("/accept-trade", static async Task<Results<Ok<string>, NotFound, ValidationProblem>> (string gameName, Guid playerId, [FromBody]Accept accept, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
             var game = gameService.GetGameByName(gameName);
-            game.Lock.Enter();
             try {
-            IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            //Valid card offered?
-            Player accepter = game.Players.Where(c => c.Id == playerId).First();
-            var status = game.TradingArea.SingleOrDefault(offer => offer.NegotiationId == accept.NegotiationId);
-            if (status == null)
-            {
-                game.Lock.Exit();
-                return TypedResults.NotFound();
-            }
-            Player initiator = game.Players.Where(c => c.Id == status.InitiatorId).First();
+                IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
+                //Valid card offered?
+                Player accepter = game.Players.Where(c => c.Id == playerId).First();
+                var status = game.TradingArea.SingleOrDefault(offer => offer.NegotiationId == accept.NegotiationId);
+                if (status == null)
+                {
+                    return TypedResults.NotFound();
+                }
+                Player initiator = game.Players.Where(c => c.Id == status.InitiatorId).First();
 
-            validationRules.AcceptTradeValidation(game, accepter,status, accept, errors);
+                validationRules.AcceptTradeValidation(game, accepter,status, accept, errors);
 
-            if (errors.Any())
-            {
-                
-            game.Lock.Exit();
-                return TypedResults.ValidationProblem(errors);
-            }
+                if (errors.Any())
+                {
+                    return TypedResults.ValidationProblem(errors);
+                }
 
-            game.TradingArea.Remove(status);
-            game.AcceptTrade(initiator, accepter,status.OfferedCards.Select(s=>s.Id).ToList(), accept.Payment);
+                game.TradingArea.Remove(status);
+                game.AcceptTrade(initiator, accepter,status.OfferedCards.Select(s=>s.Id).ToList(), accept.Payment);
             }finally{
-            game.Lock.Exit();
             }
             return TypedResults.Ok("Bytte utført");
         })

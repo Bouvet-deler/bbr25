@@ -20,12 +20,16 @@ public static class GameBoardEndpoints
             List<GameStateDto> retur = new List<GameStateDto>{};
             foreach (var game in games)
             {
-                var result = Game.CreateGameState(game, hand);
-                if (Guid.TryParse(playerId, out playerKey)) {
-                    var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
-                    if (p != null) hand = p.Hand;
+                try{
+                    var result = Game.CreateGameState(game, hand);
+                    if (Guid.TryParse(playerId, out playerKey)) {
+                        var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
+                        if (p != null) hand = p.Hand;
+                    }
+                    retur.Add(Game.CreateGameState(game, hand));
                 }
-                retur.Add(Game.CreateGameState(game, hand));
+                finally{
+                }
             }
             return TypedResults.Ok<List<GameStateDto>>(retur);
         })
@@ -39,6 +43,8 @@ public static class GameBoardEndpoints
         {
             Guid playerKey;
             var game = gameService.GetGameByName(gameName);
+            GameStateDto result;
+            try{
             Queue<Card> hand = new Queue<Card>(); ;
             //Foreløpig gjøres dette bare her
             if (Guid.TryParse(playerId, out playerKey))
@@ -46,8 +52,10 @@ public static class GameBoardEndpoints
                 var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
                 if (p != null) hand = p.Hand;
             }
-            var result = Game.CreateGameState(game, hand);
-            return TypedResults.Ok<GameStateDto>(result);
+            result = Game.CreateGameState(game, hand);
+            }finally{
+                }
+                return TypedResults.Ok<GameStateDto>(result);
         })
         .WithOpenApi(op =>
         {
@@ -60,17 +68,14 @@ public static class GameBoardEndpoints
         {
             var game = gameService.GetGameByName(gameName);
             try{
-            game.Lock.Enter();
                 IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
                 validationRules.JoinGameValidation(game,name,errors);
                 if (errors.Any()) 
                 {
-                    game.Lock.Exit();
                     return TypedResults.ValidationProblem(errors);
                 }
                 game.Join(name, playerKey);
             }finally{
-                game.Lock.Exit();
             }
             return TypedResults.Ok(playerKey);
         })
@@ -85,18 +90,15 @@ public static class GameBoardEndpoints
         {
             var game = gameService.GetGameByName(gameName);
             try{
-            game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             validationRules.NotAlreadyStarted(game, errors);
             if (errors.Any())
             {
-                game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
             }
             game.StartGame();
             }finally{
-                game.Lock.Exit();
             }
             return TypedResults.Ok();
         })
@@ -110,10 +112,8 @@ public static class GameBoardEndpoints
         {
             var game = gameService.GetGameByName(gameName);
             try{
-                game.Lock.Enter();
                 game.CheckForTimeout();
             }finally{
-                game.Lock.Exit();
             }
             return TypedResults.Ok();
         })

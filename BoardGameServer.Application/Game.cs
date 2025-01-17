@@ -7,7 +7,6 @@ namespace BoardGameServer.Application;
 
 public class Game : IPlayerActions, IRegisterActions
 {
-    public Lock Lock = new Lock();
     private NegotiationState _negotiationState;
 
     public List<Player> Players;
@@ -40,8 +39,7 @@ public class Game : IPlayerActions, IRegisterActions
         Discard = new Stack<Card>();
         Deck = new Stack<Card>();
         TradingArea = new List<Offer>();
-        TotalTimePerTurn = TimeSpan.FromSeconds(5);
-
+        TotalTimePerTurn = TimeSpan.FromSeconds(15);
         _eloCalculator = eloCalculator;
     }
     public Game(EloCalculator eloCalculator)
@@ -64,8 +62,6 @@ public class Game : IPlayerActions, IRegisterActions
         {
             throw new ArgumentException("The playerId is not a valid GUID.");
         }
-
-
 
         var player = new Player(name, playerId);
         if (!_eloCalculator.ScoreRepository.GetScores().Any(kv => kv.Key == name))
