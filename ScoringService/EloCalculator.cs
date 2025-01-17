@@ -30,6 +30,7 @@ namespace ScoringService
         /// <returns></returns>
         public void ScoreGame(List<string> ranking)
         {
+            Console.WriteLine("Rekkefølge: "+ string.Join(",", ranking));
             //The matches
             for(int i = 0; i < ranking.Count()-1;i++)
             {
@@ -39,11 +40,9 @@ namespace ScoringService
                 int elo2 = ScoreRepository.GetScoreByName(name2);
                 double probability1 = (1.0 /(1.0 + Math.Pow(10, (elo2 - elo1)/100.0)));
                 double probability2 = (1.0 /(1.0 + Math.Pow(10, (elo1 - elo2)/100.0)));
-                Console.WriteLine(probability2);
                 // Vi vet at den som kommer først var den som vant, siden vi har sortert
                 int newElo1 = (int)(elo1 + _k*(1.0 - probability1)); 
                 int newElo2 = (int)(elo2 + _k*(0.0 - probability2));
-                Console.WriteLine((int)_k*(1.0 - probability1));
                 ScoreRepository.UpdateScore(name1, newElo1);
                 ScoreRepository.UpdateScore(name2, newElo2);
             }
