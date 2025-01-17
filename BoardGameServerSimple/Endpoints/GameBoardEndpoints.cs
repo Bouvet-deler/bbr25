@@ -25,8 +25,8 @@ public static class GameBoardEndpoints
                 if (Guid.TryParse(playerId, out playerKey)) {
                     var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
                     if (p != null) hand = p.Hand;
-                    retur.Add(Game.CreateGameState(game, hand));
                 }
+                retur.Add(Game.CreateGameState(game, hand));
             }
             return TypedResults.Ok<List<GameStateDto>>(retur);
         })
@@ -63,7 +63,7 @@ public static class GameBoardEndpoints
             game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            validationRules.NotAlreadyJoined(game,name,errors);
+            validationRules.JoinGameValidation(game,name,errors);
             if (errors.Any()) 
             {
             game.Lock.Exit();

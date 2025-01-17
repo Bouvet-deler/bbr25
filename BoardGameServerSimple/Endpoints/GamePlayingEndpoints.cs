@@ -13,25 +13,6 @@ public static class GamePlayingEndpoints
     {
         var group = routes.MapGroup("/api/playing");
 
-        group.MapGet("/{id:guid}", static async Task<Results<Ok<PlayerStatus>, NotFound>> (Guid playerId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
-        {
-            var game = gameService.GetGameByName(gameName);
-            var status = gameService.GetStatusPlayer(playerId);
-            if (status == null)
-            {
-                return TypedResults.NotFound();
-            }
-
-            return TypedResults.Ok(status);
-        })
-        .WithOpenApi(op =>
-        {
-            op.Summary = "Gets the current status of an ongoing negotiation with ID.";
-            op.Description = "Gets the current status of an ongoing negotiation. If there is no ongoing negotiation with the given Id an error message is returned.";
-            return op;
-        });
-
-
         group.MapGet("/plant", static async Task<Results<Ok<string>, BadRequest, ValidationProblem>> (string gameName,Guid playerId, Guid fieldId, [FromServices] GameService gameService, [FromServices] ValidationRules validationRules) =>
         {
 

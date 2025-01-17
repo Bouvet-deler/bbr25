@@ -389,7 +389,6 @@ public class Game : IPlayerActions, IRegisterActions
             NumberOfDeckTurns++;
             if (NumberOfDeckTurns > 2)
             {
-                NumberOfDeckTurns--;
                 GameEnded = true;
             }
             else
@@ -554,6 +553,7 @@ public class Game : IPlayerActions, IRegisterActions
     public void HandleGameEnd()
     {
         CurrentState = State.GameDone;
+        CurrentPhase = Phase.Planting;
         LastStateChange = DateTime.Now;
         var players = Players
             .OrderByDescending(p=> p.Coins)
@@ -569,11 +569,15 @@ public class Game : IPlayerActions, IRegisterActions
     {
         return new GameStateDto
         {
+            Name = game.GameName,
             CurrentPlayer = game.CurrentPlayer == null ? "" : game.CurrentPlayer.Name,
             CurrentPhase = PhaseUtil.GetDescription(game.CurrentPhase),
             CurrentState = StateUtil.GetDescription(game.CurrentState),
             Round = game.NumberOfDeckTurns,
+
             PhaseTimeLeft = game.LastStateChange + game.TotalTimePerTurn - DateTime.Now,
+            TotalTimePerTurn = game.TotalTimePerTurn, 
+            LastStateChange = game.LastStateChange, 
 
             Deck = game.Deck.Count(),
             AvailableTrades = game.TradingArea.Select(negotiaton => new TradeDto

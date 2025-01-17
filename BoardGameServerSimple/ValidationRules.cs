@@ -15,6 +15,7 @@ public class ValidationRules
     public void JoinGameValidation(Game game,string name,IDictionary<string, string[]> errors)
     {
        NotAlreadyJoined(game,name,errors); 
+       Max5Players(game,errors); 
     }
     public void EndPlantingValidation(Game game, Player player, IDictionary<string, string[]> errors)
     {
@@ -71,14 +72,20 @@ public class ValidationRules
             errors["Teknisk regel"] = ["du kan bare starte spillet i registreringsfasen"];
         }
     }
-    public void NotAlreadyJoined(Game game,string name,IDictionary<string, string[]> errors)
+    private void NotAlreadyJoined(Game game,string name,IDictionary<string, string[]> errors)
     {
         if (game.Players.Any(kv => kv.Name == name))
         {
             errors["Teknisk regel"] = ["du kan bare joine spillet en gang"];
         }
     }
-
+    private void Max5Players(Game game,IDictionary<string, string[]> errors)
+    {
+        if (game.Players.Count >4)
+        {
+            errors["Teknisk regel"] = ["du kan bare joine spillet en gang"];
+        }
+    }
     public void OnePlayerIsCurrent(Game game, Player player,Offer offer,  Accept accept, IDictionary<string, string[]> errors)
     {
         if (game.CurrentPlayer.Id != offer.InitiatorId && game.CurrentPlayer.Id != player.Id)
