@@ -2,7 +2,6 @@
 using BoardGameServer.Application.Services;
 using SharedModels;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using BoardGameServer.Application.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 namespace BoardGameServerSimple.Endpoints;
@@ -16,7 +15,7 @@ public static class GameBoardEndpoints
         {
             Guid playerKey;
             var game = gameService.GetCurrentGame();
-            Queue<Card> hand = new Queue<Card>(); ;
+            Queue<Card> hand = new Queue<Card>();
             //Foreløpig gjøres dette bare her
             if (Guid.TryParse(playerId, out playerKey))
             {
@@ -24,7 +23,7 @@ public static class GameBoardEndpoints
                 if (p != null) hand = p.Hand;
             }
             var result = Game.CreateGameState(game, hand);
-            var retur = new List<GameStateDto>{ result, result, result, result,result };
+            var retur = new List<GameStateDto> { result, result, result, result, result };
             return TypedResults.Ok<List<GameStateDto>>(retur);
         })
         .WithOpenApi(op =>
@@ -54,20 +53,21 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapGet("/join", static async Task<Results<Ok<Guid>,ValidationProblem>>(string name, [FromServices] GameService gameService,ValidationRules validationRules) =>
+        group.MapGet("/join", static async Task<Results<Ok<Guid>, ValidationProblem>> (string name, Guid playerId, [FromServices] GameService gameService, ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
             game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            validationRules.NotAlreadyJoined(game,name,errors);
-            if (errors.Any()) 
+            validationRules.NotAlreadyJoined(game, name, errors);
+            if (errors.Any())
             {
-            game.Lock.Exit();
+                game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
-            }         
+            }
             game.Lock.Exit();
-            return TypedResults.Ok(game.Join(name));
+            game.Join(name, playerId.ToString());
+            return TypedResults.Ok(playerId);
         })
         .WithOpenApi(op =>
         {
@@ -76,18 +76,24 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapGet("/start", static async Task<Results<Ok,ValidationProblem>>( [FromServices] GameService gameService,ValidationRules validationRules) =>
+        group.MapGet("/start", static async Task<Results<Ok, ValidationProblem>> (string key, [FromServices] GameService gameService, ValidationRules validationRules) =>
         {
+            if (key != "BlåFjell2025")
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]> { { "Error", new[] { "Not permitted" } } });
+            }
+
             var game = gameService.GetCurrentGame();
             game.Lock.Enter();
 
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
-            validationRules.NotAlreadyStarted(game,errors);
-            if (errors.Any()) 
+            validationRules.NotAlreadyStarted(game, errors);
+            if (errors.Any())
             {
-            game.Lock.Exit();
+                game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
-            }         game.StartGame();
+            }
+            game.StartGame();
             game.Lock.Exit();
             return TypedResults.Ok();
         })
@@ -97,7 +103,8 @@ public static class GameBoardEndpoints
             op.Description = "Starts the game. This will destroy any game in progress.";
             return op;
         });
-        group.MapGet("/check-for-timeout", static async Task<Results<Ok,ValidationProblem>>( [FromServices] GameService gameService,ValidationRules validationRules) =>
+
+        group.MapGet("/check-for-timeout", static async Task<Results<Ok, ValidationProblem>> ([FromServices] GameService gameService, ValidationRules validationRules) =>
         {
             var game = gameService.GetCurrentGame();
             game.Lock.Enter();

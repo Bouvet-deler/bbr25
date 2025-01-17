@@ -43,15 +43,14 @@ public class Game : IPlayerActions, IRegisterActions
         _eloCalculator = eloCalculator;
     }
 
-    public Guid Join(string name)
+    public Guid Join(string name, string playerId)
     {
-        var player = new Player(name);
+        var player = new Player(name, playerId);
         Players.Add(player);
         if (!_eloCalculator.ScoreRepository.GetScores().Any(kv => kv.Key == name))
         {
             _eloCalculator.ScoreRepository.NewPlayer(name);
         }
-
         return player.Id;
     }
 
