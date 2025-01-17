@@ -1,4 +1,5 @@
 import random
+import uuid
 import requests
 import json
 from pprint import pprint
@@ -20,6 +21,7 @@ class Api:
             id = self.join_game(self.game_name)
         except FileNotFoundError:
             self.player_name = input("Enter player name: ").strip()
+            self.player_id = str(uuid.uuid4())
             print("Available games:")
             pprint(self.get_all_games())
             id = self.join_game(input("Enter game name to join (CASE SENSITIVE!): ").strip())
@@ -50,21 +52,16 @@ class Api:
             print("Switch from game", self.game_name, "to", game_name)
             self.game_name = game_name
 
-        if self.player_id is not None:
-            print("Checking if you're in the game already...")
-            state = self.get_game_state()
-            for player in state.players:
-                if player['name'] == self.player_name:
-                    print(self.player_name, "is already in the game")
-                    return self.player_id
-            print(self.player_name, "isn't in the game, trying to join...")
-        else:
-            print("No player ID yet, will join...")
-        response = self.make_request(f'/api/game/join?gameName={game_name}&name={self.player_name}')
-        print("Your player_id is", response, 'HOLD ON TO IT!')
-        if self.player_id != response:
-            print("You were", self.player_id, "now you're", response)
-            self.player_id = response
+        if self.player_id is None:
+            print("You must set a player ID yourself now!")
+            exit(1)
+        print("Checking if you're in the game already...")
+        state = self.get_game_state()
+        for player in state.players:
+            if player['name'] == self.player_name:
+                print(self.player_name, "is already in the game")
+                return self.player_id
+        response = self.make_request(f'/api/game/join?gameName={game_name}&name={self.player_name}&playerKey={self.player_id}')
         return response
 
     def start_game(self):
