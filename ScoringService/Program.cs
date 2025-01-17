@@ -12,32 +12,11 @@ scoreRepo.NewPlayer(player2);
 scoreRepo.NewPlayer(player3);
 scoreRepo.NewPlayer(player4);
 
-List<string>ranking  = [player2, player1, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player4, player3];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player3, player1, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player4, player3];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player4, player3];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player1, player2, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player2, player1, player3, player4];
-scoreService.ScoreGame(ranking);
-ranking = [player1, player2, player3, player4];
-scoreService.ScoreGame(ranking);
+List<string>ranking  = [player2, player1, player3];
+
+for (int i = 0; i < 100; i++)
+{
+    scoreService.ScoreGame(ranking);
+}
+
 scoreRepo.PrintAllScores();
