@@ -16,6 +16,8 @@ Spillet starter med CurrentState = "Registering".
 Da kan du registrere klienten din som en spiller i spillet, med endepunktet
 api/game/join
 
+**Merk:** Hvis du får Bad request på denne kan det hende at noen andre har registrert en spiller med samme navn. Sjekk feilmelding. 
+
 Når har gjort det, må du vente på at tilstanden i CurrentState blir "Playing", og at
 CurrentPlayer gir navnet du registrerte med join. 
 Du vil få tilbake en guid som identifiserer spilleren din. Denne må du lagre for videre
@@ -37,8 +39,9 @@ Du kan også velge å avslutte planting, ved å kalle endepunktet
 /api/playing/end-planting,
 som tar oss videre til byttefasen. 
 
-Fasen blir satt til Trading, og spille trekker to kort til den aktive
-spilleren(CurrentPlayer), som ligger i DrawnCards
+Fasen blir satt til Trading, og spille trekker to kort for deg som aktiv
+spilleren(CurrentPlayer), som ligger i DrawnCards. For å se dine nye kort må klienten 
+pulle state fra spillserveren.
 
 Her kan alle spillere bli med å bytte, men de må bytte med den aktive spilleren. 
 
