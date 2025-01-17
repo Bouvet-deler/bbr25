@@ -18,11 +18,12 @@ public class AzureScoreRepository : IScoreRepository
         _scoreTable.CreateIfNotExists();
     }
 
-    public void NewPlayer(string name) => _scoreTable.AddEntity(new PlayerScore()
+    public void NewPlayer(string name,Guid g) => _scoreTable.AddEntity(new PlayerScore()
     {
         RowKey = name,
         PartitionKey = _partitionKey,
-        Score = 400
+        Score = 400,
+        Guid = g
     });
 
     public int GetScoreByName(string name)
@@ -53,7 +54,18 @@ public class AzureScoreRepository : IScoreRepository
 
         return scores;
     }
+    public string GetNameByGuid(Guid g)
+    {
+        var scores = new Dictionary<Guid, string>();
+        var queryResults = _scoreTable.Query<PlayerScore>(entity => entity.PartitionKey == _partitionKey);
 
+        foreach(PlayerScore entity in queryResults)
+        {
+            scores[entity.Guid] = entity.RowKey;
+        }
+
+        return scores[g];
+    }
     public void PrintAllScores()
     {
         foreach (var entity in _scoreTable.Query<TableEntity>())
@@ -74,6 +86,7 @@ public record PlayerScore : ITableEntity
     public string PartitionKey { get; set; }
     public string RowKey { get; set; }
     public int Score { get; set; }
+    public Guid Guid {get; set; }
     public ETag ETag { get; set; }
     public DateTimeOffset? Timestamp { get; set; }
 }

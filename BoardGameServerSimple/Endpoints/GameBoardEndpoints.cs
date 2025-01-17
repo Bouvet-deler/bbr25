@@ -56,7 +56,7 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapGet("/join", static async Task<Results<Ok<Guid>,ValidationProblem>>(string gameName, string name, [FromServices] GameService gameService,ValidationRules validationRules) =>
+        group.MapGet("/join", static async Task<Results<Ok<string>,ValidationProblem>>(string gameName, string playerKey, string name, [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetGameByName(gameName);
             game.Lock.Enter();
@@ -68,9 +68,9 @@ public static class GameBoardEndpoints
                 game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
             }
+            game.Join(name, playerKey);
             game.Lock.Exit();
-            game.Join(name, playerId.ToString());
-            return TypedResults.Ok(playerId);
+            return TypedResults.Ok(playerKey);
         })
         .WithOpenApi(op =>
         {
