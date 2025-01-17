@@ -141,8 +141,8 @@ Merk reglene i det offisielle spillet for forhandlinger er noe forskjellig i den
 [Offisielle Bohnanza regler (PDF)](https://www.riograndegames.com/wp-content/uploads/2013/02/Bohnanza-Rules.pdf)
 
 ## Bilder
-![Brett for en spiller](https://github.com/kaifriis/BoardGameServerSimple/blob/master/regler.jpg)
-![Regler for de ulike fasene for en spiller](https://github.com/kaifriis/BoardGameServerSimple/blob/master/spill.jpg)
+![Brett for en spiller](https://github.com/Bouvet-deler/bbr25/blob/master/regler.jpg)
+![Regler for de ulike fasene for en spiller](https://github.com/Bouvet-deler/bbr25/blob/master/spill.jpg)
 
 
 ## Din klient
