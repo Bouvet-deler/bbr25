@@ -32,6 +32,7 @@ public class PlayerDto
     public int Hand { get; set; }
     public IEnumerable<CardDto> DrawnCards { get; set; }
     public IEnumerable<CardDto> TradedCards { get; set; }
+    public bool IsActive { get; set; }
 }
 
 public class FieldDto

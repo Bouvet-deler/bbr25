@@ -41,7 +41,6 @@ public class Game : IPlayerActions, IRegisterActions
         _eloCalculator = eloCalculator;
     }
 
-    //TODO registrer spillerene i eloRatingen
     public Guid Join(string name)
     {
         var player = new Player(name);
@@ -97,6 +96,7 @@ public class Game : IPlayerActions, IRegisterActions
         }
         ShuffleDeck();
         //Deal hands
+        NumberOfDeckTurns = 0;
 
         for (var playerNum = 0;playerNum<Players.Count(); playerNum++)
         {
@@ -105,7 +105,8 @@ public class Game : IPlayerActions, IRegisterActions
             {
                 item.StartingPlayer = true;
             }
-            try{
+            try
+            {
                 item.NextPlayer = Players[playerNum+1];
             }
             catch(Exception e)
@@ -113,6 +114,7 @@ public class Game : IPlayerActions, IRegisterActions
                 item.NextPlayer = Players[0];
             }
             item.PositionFromStarting = playerNum;
+            item.IsActive = true;
 
             for (int i = 0; i < 5; i++)
             {
@@ -125,6 +127,7 @@ public class Game : IPlayerActions, IRegisterActions
                 item.Fields.Add(Guid.NewGuid(), new List<Card>());
             }
         }
+        GameEnded = false;
         CurrentState = State.Playing;
         CurrentPhase = Phase.Planting;
         CurrentPlayer = Players.Single(p=> p.StartingPlayer);
@@ -248,7 +251,6 @@ public class Game : IPlayerActions, IRegisterActions
 
     public void EndTrading()
     {
-        //ToDo: This for NegotiationState object is needed for the timer. Can be removed if we don't use timer. 
         switch (CurrentPhase)
         {
             case Phase.Trading:
@@ -297,9 +299,29 @@ public class Game : IPlayerActions, IRegisterActions
 
     }
 
+    public void GoToPlantingPhaseForce()
+    {
+        LastStateChange = DateTime.Now;
+        if (!GameEnded)
+        {
+            CurrentPlayer = CurrentPlayer.NextPlayer;
+            if(CurrentPlayer.Hand.Any())
+            {
+                CurrentPhase = Phase.Planting;
+            }
+            else
+            {
+                GoToTradingPhase();
+            }
+        }
+        else
+        {
+            HandleGameEnd();
+        }
+
+    }
     public void GoToPlantingPhase()
     {
-        
         LastStateChange = DateTime.Now;
         for(int i = 0; i<3; i++)
         {
@@ -364,27 +386,39 @@ public class Game : IPlayerActions, IRegisterActions
     // 
     public void CheckForTimeout()
     {
-        if (CurrentState != State.Playing)
+
+        if (CurrentState == State.Registering)
         {
+            if (Players.Count == 5)
+            {
+                StartGame();
+            }
             return;
         }
         var now = DateTime.Now;
-        if((now - LastStateChange) < TimeSpan.FromMinutes(2))
-        /* if((now - LastStateChange) < TimeSpan.FromSeconds(5)) */
+        /* if((now - LastStateChange) < TimeSpan.FromMinutes(2)) */
+        if((now - LastStateChange) < TimeSpan.FromSeconds(2))
         {
             // vi er innenfor makstid, fortsett som vanlig
             return ;
         }
 
-
+        if (CurrentState == State.GameDone)
+        {
+            foreach(Player p in Players)
+            {
+                p.Coins = 0;
+                RemovePlayerFromGame(p);
+            }
+            CurrentState = State.Registering;
+            return;
+        }
         switch (CurrentPhase)
         {
             case Phase.Planting:
             case Phase.PlantingOptional:
                 RemovePlayerFromGame(CurrentPlayer);
-                CurrentPlayer = CurrentPlayer.NextPlayer;
-                CurrentPhase = Phase.Planting;
-                LastStateChange = DateTime.Now;
+                GoToPlantingPhaseForce();
                 break;
 
             case Phase.Trading:
@@ -395,16 +429,14 @@ public class Game : IPlayerActions, IRegisterActions
             case Phase.TradePlanting:
                 //Remove all players who have cards that aren't planted
                 var players = Players.Where(p=> p.TradedCards.Any() || p.DrawnCards.Any());
-                
+
                 foreach(Player player in players)
                 {
                     RemovePlayerFromGame(player);
                 }
                 //Vi bruker ikke metoden for å gå til planting for da trekker feil
                 //spiller kort
-                CurrentPhase = Phase.Planting;
-                CurrentPlayer = CurrentPlayer.NextPlayer;
-                LastStateChange = DateTime.Now;
+                GoToPlantingPhaseForce();
                 break;
             default:
                 break;
@@ -422,6 +454,7 @@ public class Game : IPlayerActions, IRegisterActions
     /// <returns></returns>
     public void RemovePlayerFromGame(Player player)
     {
+        player.IsActive = false;
         var forrigeSpiller = player;
         while(forrigeSpiller.NextPlayer != player)
         {
@@ -456,6 +489,9 @@ public class Game : IPlayerActions, IRegisterActions
         }
         player.DrawnCards.Clear();
 
+        if (forrigeSpiller == player){
+            HandleGameEnd();
+        }
     }
 
     //Tar alt fra discard pilen, stokker om innholdet, og legger det i decken
@@ -475,7 +511,7 @@ public class Game : IPlayerActions, IRegisterActions
             Deck.Push(list[i]);
         }
     }
-//Etter denne er kallt, skal feltet være tømt, få penger utifra kortene de har
+    //Etter denne er kallt, skal feltet være tømt, få penger utifra kortene de har
     //høstet, og om det er noen, skal kortene bli lagt i discard pilen
     public void HarvestField(Player player, Guid field)
     {
@@ -500,6 +536,7 @@ public class Game : IPlayerActions, IRegisterActions
     public void HandleGameEnd()
     {
         CurrentState = State.GameDone;
+        LastStateChange = DateTime.Now;
         var players = Players
             .OrderByDescending(p=> p.Coins)
             .ThenByDescending(p=>p.PositionFromStarting)
@@ -507,6 +544,7 @@ public class Game : IPlayerActions, IRegisterActions
             .ToList<string>();
 
         _eloCalculator.ScoreGame(players);
+        Players.Clear();
     }
 
     public static GameStateDto CreateGameState(Game game, Queue<Card> hand)
@@ -528,15 +566,16 @@ public class Game : IPlayerActions, IRegisterActions
             }),
             DiscardPile = game.Discard,
             Players = game.Players
-        ?.Select(p => new PlayerDto
-        {
-            Name = p.Name,
-            Coins = p.Coins,
-            Fields = p.Fields.Select(kv => new FieldDto { Key = kv.Key, Card = kv.Value.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }) }),
-            Hand = p.Hand.Count(),
-            DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }),
-            TradedCards = p.TradedCards.Select(c => new CardDto { Id = c.Id, Type = c.Type })
-        })?.ToList(),
+                ?.Select(p => new PlayerDto
+                    {
+                        Name = p.Name,
+                        Coins = p.Coins,
+                        Fields = p.Fields.Select(kv => new FieldDto { Key = kv.Key, Card = kv.Value.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }) }),
+                        Hand = p.Hand.Count(),
+                        DrawnCards = p.DrawnCards.Select(c => new CardDto { Id = c.Id, Type = c.Type, ExchangeMap = c.ExchangeMap.Select(em => new ExchangeMapEntry { CropSize = em.Item1, Value = em.Item2 }).ToList() }),
+                        TradedCards = p.TradedCards.Select(c => new CardDto { Id = c.Id, Type = c.Type }),
+                        IsActive = p.IsActive,
+                    })?.ToList(),
             YourHand = hand.Select(c => new HandCardDto
             {
                 FirstCard = hand.Peek() == c, //Bare for å gjøre det ekstra tydlig hvilket kort de kan spille

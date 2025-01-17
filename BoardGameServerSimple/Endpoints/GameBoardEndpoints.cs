@@ -16,10 +16,8 @@ public static class GameBoardEndpoints
         {
             Guid playerKey;
             var game = gameService.GetCurrentGame();
-            game.Lock.Enter();
             Queue<Card> hand = new Queue<Card>(); ;
             //Foreløpig gjøres dette bare her
-            game.CheckForTimeout();
             if (Guid.TryParse(playerId, out playerKey))
             {
                 var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
@@ -27,7 +25,6 @@ public static class GameBoardEndpoints
             }
             var result = Game.CreateGameState(game, hand);
             var retur = new List<GameStateDto>{ result, result, result, result,result };
-            game.Lock.Exit();
             return TypedResults.Ok<List<GameStateDto>>(retur);
         })
         .WithOpenApi(op =>
@@ -42,7 +39,6 @@ public static class GameBoardEndpoints
             var game = gameService.GetCurrentGame();
             Queue<Card> hand = new Queue<Card>(); ;
             //Foreløpig gjøres dette bare her
-            game.CheckForTimeout();
             if (Guid.TryParse(playerId, out playerKey))
             {
                 var p = game.Players.FirstOrDefault(p => p.Id == playerKey);
@@ -101,7 +97,20 @@ public static class GameBoardEndpoints
             op.Description = "Starts the game. This will destroy any game in progress.";
             return op;
         });
-
+        group.MapGet("/check-for-timeout", static async Task<Results<Ok,ValidationProblem>>( [FromServices] GameService gameService,ValidationRules validationRules) =>
+        {
+            var game = gameService.GetCurrentGame();
+            game.Lock.Enter();
+            game.CheckForTimeout();
+            game.Lock.Exit();
+            return TypedResults.Ok();
+        })
+        .WithOpenApi(op =>
+        {
+            op.Summary = "Starts the game";
+            op.Description = "Starts the game. This will destroy any game in progress.";
+            return op;
+        });
         group.MapGet("/stop", () =>
         {
             return TypedResults.Ok();

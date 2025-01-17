@@ -137,7 +137,6 @@ public static class GamePlayingEndpoints
             IDictionary<string, string[]> errors = new Dictionary<string, string[]>();
             var game = gameService.GetCurrentGame();
             game.Lock.Enter();
-            Console.WriteLine(game.Players.FirstOrDefault().Id);
             Player p = game.Players.Where(c => c.Id == playerId).First();
             validationRules.HarvestFieldValidation(game, p, fieldId, errors);
             if (errors.Any()) {
@@ -189,7 +188,6 @@ public static class GamePlayingEndpoints
             game.Lock.Exit();
                 return TypedResults.NotFound();
             }
-            Console.WriteLine("Fant et bytte");
             Player initiator = game.Players.Where(c => c.Id == status.InitiatorId).First();
 
             validationRules.AcceptTradeValidation(game, accepter,status, accept, errors);
@@ -200,11 +198,9 @@ public static class GamePlayingEndpoints
             game.Lock.Exit();
                 return TypedResults.ValidationProblem(errors);
             }
-            Console.WriteLine("Validerte");
 
             game.TradingArea.Remove(status);
             game.AcceptTrade(initiator, accepter,status.OfferedCards.Select(s=>s.Id).ToList(), accept.Payment);
-            Console.WriteLine(string.Join(" ", game.Players.SelectMany(s=>s.DrawnCards).Select(c=>c.Type)));
             game.Lock.Exit();
             return TypedResults.Ok("Bytte utført");
         })

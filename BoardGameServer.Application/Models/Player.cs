@@ -26,6 +26,8 @@ public class Player
     public bool StartingPlayer;
     public int PositionFromStarting = 0;
 
+    //Spillere som ikke svarer på sin tur blir inaktive
+    public bool IsActive = true;
     //
     public int Coins = 0;
     //Egenregistrert navn
