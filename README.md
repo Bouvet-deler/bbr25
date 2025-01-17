@@ -16,17 +16,16 @@ Det er tre felter som avgjør hva slags handlinger du skal gjøre.
 
 Det er CurrentState, CurrentPhase, og current player.
 
-Så lenge du har kort i TradedCards, 
 Spillet starter med CurrentState = "Registering".
 Da kan du registrere klienten din som en spiller i spillet, med endepunktet
 api/game/join
 
+
 **Merk:** Hvis du får Bad request på denne kan det hende at noen andre har registrert en spiller med samme navn. Sjekk feilmelding. 
 
-Når har gjort det, må du vente på at tilstanden i CurrentState blir "Playing", og at
-CurrentPlayer gir navnet du registrerte med join. 
-Du vil få tilbake en guid som identifiserer spilleren din. Denne må du lagre for videre
-bruk.
+Når har gjort det, må du fortsette å polle, og vente på at tilstanden i CurrentState blir "Playing", og at
+CurrentPlayer bilr navnet du registrerte med join. 
+
 
 Når CurrentState er Playing og CurrentPlayer er din spiller, er det din tur til å
 spille.
@@ -35,7 +34,7 @@ Da er det CurrentPhase som bestemmer hvilke handlinger som er lovlige.
 En tur starter med Fasen "Planting". Da MÅ du plante det første kortet i hånden din. 
 Dette gjør du med endepunktet 
 /api/playing/plant. 
-Du må oppgi spillerguiden for å autentisere deg, og feltet du vil plante kortet i. Du
+Du må oppgi spiller-guid-en for å autentisere deg, og feltet du vil plante kortet i. Du
 trenger ikke oppgi kortet du vil plante, da du bare har lov til å plante ett kort.
 
 Neste fase er da PlantingOptional. Her kan du plante et kort til om du vil, og da bruker
@@ -45,8 +44,7 @@ Du kan også velge å avslutte planting, ved å kalle endepunktet
 som tar oss videre til byttefasen. 
 
 Fasen blir satt til Trading, og spille trekker to kort for deg som aktiv
-spilleren(CurrentPlayer), som ligger i DrawnCards. For å se dine nye kort må klienten 
-pulle state fra spillserveren.
+spilleren(CurrentPlayer), som ligger i feltet på spilleren DrawnCards. 
 
 Her kan alle spillere bli med å bytte, men de må bytte med den aktive spilleren. 
 
@@ -63,7 +61,7 @@ du skal plante. dette er fordi du kan plante dem i den rekkefølgen du vil.
 
 Når alle har plantet sine kort, blir det neste spillers tur.
 
-
+En oppstiling av hvilke handliner som er lovlige i hvilke states
 
 |--------------------------|Planting|PlantingOptional|Trading|Tradeplanting|
 |--------------------------|--------|----------------|-------|-------------|
