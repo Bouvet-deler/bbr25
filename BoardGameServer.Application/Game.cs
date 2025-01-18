@@ -511,6 +511,11 @@ public class Game : IPlayerActions, IRegisterActions
         }
         player.DrawnCards.Clear();
 
+        if (forrigeSpiller.NextPlayer == forrigeSpiller) {
+            GameEnded = true;
+        }
+
+
         if (forrigeSpiller == player){
             HandleGameEnd();
         }
