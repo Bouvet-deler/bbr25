@@ -86,7 +86,7 @@ public static class GameBoardEndpoints
             return op;
         });
 
-        group.MapGet("/start", static async Task<Results<Ok,ValidationProblem>>(string gameName, [FromServices] GameService gameService,ValidationRules validationRules) =>
+        group.MapGet("/start", static async Task<Results<Ok<string>,ValidationProblem>>(string gameName, [FromServices] GameService gameService,ValidationRules validationRules) =>
         {
             var game = gameService.GetGameByName(gameName);
             try{
@@ -97,10 +97,10 @@ public static class GameBoardEndpoints
             {
                 return TypedResults.ValidationProblem(errors);
             }
-            game.StartGame();
+            /* game.StartGame(); */
             }finally{
             }
-            return TypedResults.Ok();
+            return TypedResults.Ok("denne er disablet");
         })
         .WithOpenApi(op =>
         {

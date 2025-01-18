@@ -14,6 +14,7 @@ public class ValidationRules
     }
     public void JoinGameValidation(Game game,string name,IDictionary<string, string[]> errors)
     {
+        NotAlreadyStarted(game,errors);
        NotAlreadyJoined(game,name,errors); 
        Max5Players(game,errors); 
     }
