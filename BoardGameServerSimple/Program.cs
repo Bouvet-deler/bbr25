@@ -13,8 +13,8 @@ builder.Services.AddSingleton<ValidationRules>();
 builder.Services.AddSingleton<GameService>();
 builder.Services.AddSingleton<INegotiationService, NegotiationService>();
 builder.Services.AddSingleton<EloCalculator, EloCalculator>();
-/* builder.Services.AddSingleton<IScoreRepository, ScoreRepository>(); */
-builder.Services.AddSingleton<IScoreRepository, AzureScoreRepository>();
+builder.Services.AddSingleton<IScoreRepository, ScoreRepository>();
+/* builder.Services.AddSingleton<IScoreRepository, AzureScoreRepository>(); */
 
 builder.Services.AddCors(options =>
 {

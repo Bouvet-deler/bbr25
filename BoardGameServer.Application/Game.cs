@@ -510,7 +510,6 @@ public class Game : IPlayerActions, IRegisterActions
             Discard.Push(card);
         }
         player.DrawnCards.Clear();
-
         if (forrigeSpiller.NextPlayer == forrigeSpiller) {
             GameEnded = true;
         }
@@ -573,6 +572,7 @@ public class Game : IPlayerActions, IRegisterActions
 
         _eloCalculator.ScoreGame(players);
         Players.Clear();
+        
     }
     
     public static GameStateDto CreateGameState(Game game, Queue<Card> hand)
