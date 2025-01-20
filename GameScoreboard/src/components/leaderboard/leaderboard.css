@@ -1,0 +1,45 @@
+table {
+    max-width: 800px;
+    border-collapse: collapse; /* Makes table borders collapse into a single border */
+    border-radius: 10px;
+    margin: 20px 0; /* Adds some spacing around the table */
+    font-family: Orbitron, sans-serif; /* Set a simple font for readability */
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+tbody {
+    height: 80%;
+    overflow: scroll;
+}
+
+tr {
+    height: 4rem;
+    padding-top: 1rem;
+    background: #3B201AB8;
+    opacity: 72%;
+}
+
+table tr + tr {
+    border-top: 1px solid #C1C1C1; /* Creates a white line between rows */
+}
+
+td {
+    color: #FFFFFF;
+}
+
+table tr:first-child td:first-child {
+    border-top-left-radius: 10px; /* Rounded top-left corner */
+}
+
+table tr:first-child td:last-child {
+    border-top-right-radius: 10px; /* Rounded top-right corner */
+}
+
+table tr:last-child td:first-child {
+    border-bottom-left-radius: 10px; /* Rounded bottom-left corner */
+}
+
+table tr:last-child td:last-child {
+    border-bottom-right-radius: 10px; /* Rounded bottom-right corner */
+}

@@ -1,0 +1,50 @@
+.player-state {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Apply styles to .parent but exclude those with .exclude inside */
+.player-state:not(:has(.phases)) {
+    padding: 0 1rem;
+}
+
+.player-state--not-active {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.player-state--open {
+    text-align: center;
+}
+
+.player-state-timer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    .clock {
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+}
+
+.phases {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.phase {
+    flex-grow: 1;
+    text-align: center;
+    border-top: 1px solid #C1C1C1;
+    padding: 1rem 0;
+}
+
+.phase:not(:last-child) {
+    border-right: 1px solid #C1C1C1;
+}
+
+.phase--active {
+    background: #87DC00ED;
+    opacity: 100%;
+}

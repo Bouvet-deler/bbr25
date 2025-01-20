@@ -1,0 +1,17 @@
+.game-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 25rem;
+    margin-top: 2.5rem;
+}
+
+.player-state-container {
+    margin-top: 2rem;
+    background: #3B201AB8;
+    opacity: 72%;
+    border-radius: 15px;
+}
+
+.player-state-container > *:not(:last-child) {
+    border-bottom: 1px solid #C1C1C1;
+}

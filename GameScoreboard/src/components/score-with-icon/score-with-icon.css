@@ -1,0 +1,9 @@
+.score-with-icon {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.score {
+    margin-left: 0.5rem;
+}

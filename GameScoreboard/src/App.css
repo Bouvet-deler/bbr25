@@ -1,0 +1,32 @@
+#root {
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+@font-face {
+  font-family: "SuperBread";   /*Can be any text*/
+  src: local("SuperBread"),
+  url("./fonts/SuperBread.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Orbitron";   /*Can be any text*/
+  src: local("Orbitron"),
+  url("./fonts/Orbitron.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "IbmPlexMono";   /*Can be any text*/
+  src: local("IbmPlexMono"),
+  url("./fonts/IBMPlexMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";   /*Can be any text*/
+  src: local("RobotoMono"),
+  url("./fonts/RobotoMono-Regular.ttf") format("truetype");
+}
+
+.body {
+  background: url('./assets/mars-background.jpg') no-repeat;
+}

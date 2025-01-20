@@ -1,0 +1,39 @@
+.container {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.leaderboard-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: flex-start;
+}
+
+.leaderboard {
+    margin-top: 3rem;
+    width: 50%;
+}
+
+.countdown {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    margin: 0 1.5rem 1rem;
+    width: 95%;
+
+    .progress-bar {
+        flex-grow: 1;
+        padding-right: 1.5rem;
+    }
+    .clock {
+        font-family: RobotoMono, sans-serif;
+        font-size: 3rem;
+        font-weight: 700;
+    }
+}
