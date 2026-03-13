@@ -97,10 +97,10 @@ public static class GameBoardEndpoints
             {
                 return TypedResults.ValidationProblem(errors);
             }
-            /* game.StartGame(); */
-            }finally{
+            game.StartGame();
+            }   finally{
             }
-            return TypedResults.Ok("denne er disablet");
+            return TypedResults.Ok("Game started");
         })
         .WithOpenApi(op =>
         {

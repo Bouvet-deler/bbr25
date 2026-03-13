@@ -593,6 +593,7 @@ public class Game : IPlayerActions, IRegisterActions
             AvailableTrades = game.TradingArea.Select(negotiaton => new TradeDto
             {
                 InitiatorId = negotiaton.InitiatorId,
+                NegotiationId = negotiaton.NegotiationId,
                 OfferedCards = negotiaton.OfferedCards.Select(s => s.Type).ToList(),
                 CardTypesWanted = negotiaton.CardTypesWanted
             }),
