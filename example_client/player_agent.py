@@ -89,6 +89,7 @@ class PlayerAgent:
 
             elif phase == 'TradePlanting':
                 self.strategy.trade_planting_strategy(fresh_state, fresh_player, self.player_id)
+                self.strategy.last_round_harvest_strategy(fresh_state, fresh_player, self.player_id)
                 self._print_turn_summary(fresh_state)
 
         except Exception as e:

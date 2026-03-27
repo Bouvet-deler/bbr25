@@ -276,6 +276,52 @@ class GameStrategy:
                 parts.append(f"Field {i}: empty")
         return "  |  ".join(parts)
 
+    def last_round_harvest_strategy(
+        self,
+        game_state: GameStateDto,
+        current_player: PlayerDto,
+        player_id: str,
+    ) -> None:
+        """Harvest all harvestable fields when the deck is nearly empty.
+
+        Only fires on the last deck pass (round == 2) when fewer than
+        one full round of cards remains (num_players * 5 cards per round).
+        Called at the end of TradePlanting so coins aren't lost if the
+        server ends the game before the player can act again.
+        """
+        num_players = len(game_state.players)
+        last_round_threshold = num_players * 5
+        if game_state.round < 2 or game_state.deck > last_round_threshold:
+            return
+
+        print(f"  ⚠ Last deck pass, {game_state.deck} cards left — performing end-of-game harvest")
+        fresh_state = self.api.get_game(player_id=player_id)
+        fresh_player = next(
+            (p for p in fresh_state.players if p.name == current_player.name),
+            current_player,
+        )
+
+        harvested_any = False
+        for field in list(fresh_player.fields):
+            if field.card and self.can_harvest_field(fresh_player, field):
+                try:
+                    self._harvest_for_space(player_id, fresh_player, field, "end-of-game")
+                except Exception:
+                    # Game may have ended server-side between phases; silently stop
+                    break
+                harvested_any = True
+                # Refresh so bean-protection rule re-evaluates after each harvest
+                fresh_state = self.api.get_game(player_id=player_id)
+                fresh_player = next(
+                    (p for p in fresh_state.players if p.name == current_player.name),
+                    fresh_player,
+                )
+                if not fresh_player:
+                    break
+
+        if harvested_any:
+            print(f"  Fields after end-of-game harvest: {self._fmt_fields(fresh_player.fields)}")
+
     def _harvest_for_space(
         self, player_id: str, player: PlayerDto, field: FieldDto, reason: str = ""
     ) -> None:

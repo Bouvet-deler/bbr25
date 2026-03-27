@@ -561,6 +561,13 @@ public class Game : IPlayerActions, IRegisterActions
     }
     public void HandleGameEnd()
     {
+        foreach ( Player p in Players)
+        {
+            foreach (var field in p.Fields)
+            {
+                HarvestField(p, field.Key);
+            }
+        }
         CurrentState = State.GameDone;
         CurrentPhase = Phase.Planting;
         LastStateChange = DateTime.Now;
